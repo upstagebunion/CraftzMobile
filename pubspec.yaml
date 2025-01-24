@@ -1,0 +1,40 @@
+name: craftz_app
+description: Craftz Administration App.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Eras
+      fonts:
+        - asset: assets/fonts/ITC Eras Light Regular.otf
+          weight: 200
+        - asset: assets/fonts/ITC Eras Book Regular.otf
+          weight: 300
+        - asset: assets/fonts/ITC Eras Medium.otf
+          weight: 500
+        - asset: assets/fonts/ITC Eras Demi Regular.otf
+          weight: 700
+        - asset: assets/fonts/ITC Eras Bold.otf
+          weight: 800
+        - asset: assets/fonts/ITC Eras Ultra Regular.otf
+          weight: 900
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  image_path_android: assets/icon/icon.jpg
+  adaptive_icon_foreground: "assets/icon/front.png" # Ruta del ícono de primer plano
+  adaptive_icon_background: "assets/icon/back.png"
+  min_sdk_android: 21
