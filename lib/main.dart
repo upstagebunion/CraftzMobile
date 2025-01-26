@@ -15,11 +15,17 @@ class MyApp extends StatelessWidget {
       title: 'Craftz Admin',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSwatch(
-          primarySwatch: buildMaterialColor(Color(0xff292662)),
-          accentColor: Color.fromARGB(255, 195, 19, 73)
+        colorScheme: ColorScheme(
+          brightness: Brightness.light,
+          primary: Color(0xff292662),
+          onPrimary: Colors.white,
+          secondary: Color(0xFFC31349),
+          onSecondary: Colors.white,
+          surface: const Color.fromARGB(255, 206, 206, 206),
+          onSurface: Color(0xff292662),
+          error: Color(0xFFC31349),
+          onError: Colors.white,
         ),
-        scaffoldBackgroundColor: Colors.white,
         fontFamily: 'Eras',
         textTheme: TextTheme(
           bodySmall: TextStyle(fontSize:12, color:Color(0xff292662), fontWeight: FontWeight.w600),
@@ -29,7 +35,7 @@ class MyApp extends StatelessWidget {
           headlineMedium: TextStyle(fontSize:20, color:Color.fromARGB(255, 255, 255, 255), fontWeight: FontWeight.w700),
         ),
       ),
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.login,
       routes: AppRoutes.routes,
     );
   }
