@@ -13,7 +13,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
 
   void _login() async {
-    String email = _emailController.text;
+    String email = _emailController.text.replaceAll(' ', '');
     String password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
@@ -27,10 +27,11 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    ApiService ap = ApiService(email: email, password: password);
+    ApiService ap = ApiService();
+    
 
     try {
-      await ap.login();
+      await ap.login(email: email, password: password);
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.visiblePassword,
                 autocorrect: false,
                 enableSuggestions: false,
-                obscureText: _isPasswordVisible? true : false,
+                obscureText: _isPasswordVisible? false : true,
                 decoration: InputDecoration(
                   labelText: 'Contraseña',
                   suffixIcon: IconButton(icon: Icon(_isPasswordVisible? Icons.visibility : Icons.visibility_off,
