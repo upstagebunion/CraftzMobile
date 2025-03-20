@@ -1,3 +1,4 @@
+import 'package:craftz_app/data/repositories/categorias_repositorie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/repositories/catalogo_productos_repositorie.dart';
@@ -5,7 +6,7 @@ import '../../../providers/product_notifier.dart';
 
 class ModalAgregarProductos {
   final WidgetRef ref;
-  final Map<String, String>categories;
+  final CatalogoCategorias categories;
 
   ModalAgregarProductos(this.ref, this.categories);
 
@@ -55,10 +56,11 @@ class ModalAgregarProductos {
   }
 
   // Método para mostrar el formulario de agregar color
-  void mostrarFormularioAgregarColor(BuildContext context, Producto producto, Variante variante) {
+  void mostrarFormularioAgregarColor(BuildContext context, Producto producto, Variante variante, Subcategoria subcategoria) {
     final TextEditingController colorController = TextEditingController();
     final TextEditingController stockController = TextEditingController();
     final TextEditingController precioController = TextEditingController();
+    final bool usaTallas = subcategoria.usaTallas;
 
     showModalBottomSheet(
       context: context,
@@ -78,7 +80,7 @@ class ModalAgregarProductos {
                   decoration: InputDecoration(labelText: 'Nombre del Color'),
                 ),
               ),
-              if (producto.categoria != categories['Ropa'])
+              if (!usaTallas)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
@@ -87,7 +89,7 @@ class ModalAgregarProductos {
                     keyboardType: TextInputType.number,
                   ),
                 ),
-              if (producto.categoria != categories['Ropa'])
+              if (!usaTallas)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
@@ -105,8 +107,8 @@ class ModalAgregarProductos {
                         producto.id,
                         variante.id,
                         nuevoColor,
-                        producto.categoria != categories['Ropa'] ? int.parse(stockController.text) : null,
-                        producto.categoria != categories['Ropa'] ? double.parse(precioController.text) : null,
+                        !usaTallas ? int.parse(stockController.text) : null,
+                        !usaTallas ? double.parse(precioController.text) : null,
                       );
                       Navigator.pop(context);
                     } catch (e) {

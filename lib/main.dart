@@ -26,6 +26,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Craftz Admin',
       theme: ThemeData(
+        progressIndicatorTheme: ProgressIndicatorThemeData(
+          circularTrackColor: Color.fromARGB(255, 173, 170, 243),
+          strokeCap: StrokeCap.round, 
+          strokeWidth: 4.0
+        ),
         useMaterial3: true,
         colorScheme: ColorScheme(
           brightness: Brightness.light,

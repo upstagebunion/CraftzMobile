@@ -15,8 +15,7 @@ class HomeScreen extends StatelessWidget {
       ),
       drawer: const CustomDrawer(),
       body: Center(
-        child: Text('Welcome to Craftz Admin App', style: Theme.of(context).textTheme.bodySmall,
-        ),
+        child: Text('Welcome to Craftz Admin App', style: Theme.of(context).textTheme.bodySmall),
       ),
     );
   }

@@ -25,9 +25,19 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
       final productos = data.map((item) => Producto.fromJson(item)).toList();
       state = CatalogoProductos(productos: productos);
     } catch (e) {
-      print('Error al cargar productos: $e');
+      throw e;
     } finally {
       ref.read(isLoadingProvider.notifier).state = false;
+    }
+  }
+
+  Future<void> agregarProducto(Map<String, dynamic> producto) async {
+    try {
+      final response = await apiService.agregarProducto(producto);
+      final productoActualizado = Producto.fromJson(response);
+      state = CatalogoProductos(productos: [...state.productos, productoActualizado]);
+    } catch (e) {
+      throw e;
     }
   }
 
@@ -134,6 +144,64 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
         }).toList());
     } catch (e) {
       throw Exception('Error al agregar la talla: $e');
+    }
+  }
+
+  Future<void> eliminarProducto(String productoId) async {
+    try {
+      await apiService.eliminarProducto(productoId);
+      state = CatalogoProductos(productos: state.productos.where((producto) => producto.id != productoId).toList());
+    } catch (e) {
+      throw Exception('Error al eliminar el producto: $e');
+    }
+  }
+
+  Future<void> eliminarVariante(String productoId, String varianteId) async {
+    try {
+      await apiService.eliminarVariante(productoId, varianteId);
+      state = CatalogoProductos(productos: state.productos.map((producto) {
+        if (producto.id == productoId) {
+          return producto.copyWith(
+            variantes: producto.variantes?.where((variante) => variante.id != varianteId).toList(),
+          );
+        }
+        return producto;
+      }).toList());
+    } catch (e) {
+      throw Exception('Error al eliminar el producto: $e');
+    }
+  }
+
+  Future<void> eliminarColor(String productoId, String varianteId, String colorId) async {
+    try {
+      final response = await apiService.eliminarColor(productoId, varianteId, colorId);
+      final productoActualizado = Producto.fromJson(response);
+
+      // Actualizar el estado del provider
+      state = CatalogoProductos(productos: state.productos.map((producto) {
+        if (producto.id == productoId) {
+          return productoActualizado;
+        }
+        return producto;
+      }).toList());
+    } catch (e) {
+      throw Exception('Error al eliminar el producto: $e');
+    }
+  }
+
+  Future<void> eliminarTalla(String productoId, String varianteId, String colorId, String tallaId) async {
+    try {
+      final response = await apiService.eliminarTalla(productoId, varianteId, colorId, tallaId);
+      final productoActualizado = Producto.fromJson(response);
+
+      state = CatalogoProductos(productos: state.productos.map((producto) {
+        if (producto.id == productoId) {
+          return productoActualizado;
+        }
+        return producto;
+      }).toList());
+    } catch (e) {
+      throw Exception('Error al eliminar el producto: $e');
     }
   }
 }

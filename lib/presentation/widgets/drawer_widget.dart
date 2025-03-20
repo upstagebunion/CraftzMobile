@@ -25,7 +25,7 @@ class CustomDrawer extends StatelessWidget{
             leading: Icon(Icons.home, color: theme.colorScheme.primary),
             title: Text('Casita', style: theme.textTheme.bodyMedium),
             onTap: (){
-
+              Navigator.pushReplacementNamed(context, AppRoutes.home);
             },
           ),
           ListTile(
