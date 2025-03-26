@@ -7,13 +7,52 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+
+  runApp(
+    LoadingApp()
+  );
+
   final ApiService auth = ApiService();
-  bool isTokenValid = await auth.verifyToken(); 
+  bool isTokenValid = await auth.verifyToken();
+
   runApp(
     ProviderScope(
       child: MyApp(initialRoute: isTokenValid ? AppRoutes.home : AppRoutes.login)
     )
   );
+}
+
+class LoadingApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Color(0xff292662),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                strokeWidth: 4.0,
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Verificando sesión...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Eras',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {

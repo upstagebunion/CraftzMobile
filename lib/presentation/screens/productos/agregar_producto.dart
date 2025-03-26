@@ -36,6 +36,9 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Agregar Producto'),
+        backgroundColor: colors.primary,
+        foregroundColor: colors.onPrimary,
+        titleTextStyle: Theme.of(context).textTheme.headlineMedium,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

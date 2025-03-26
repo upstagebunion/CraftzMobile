@@ -23,7 +23,7 @@ class CustomDrawer extends StatelessWidget{
           ),
           ListTile(
             leading: Icon(Icons.home, color: theme.colorScheme.primary),
-            title: Text('Casita', style: theme.textTheme.bodyMedium),
+            title: Text('Home', style: theme.textTheme.bodyMedium),
             onTap: (){
               Navigator.pushReplacementNamed(context, AppRoutes.home);
             },
@@ -33,6 +33,13 @@ class CustomDrawer extends StatelessWidget{
             title: Text('Inventario', style: theme.textTheme.bodyMedium),
             onTap: (){
               Navigator.pushNamed(context, AppRoutes.productos);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.shopping_bag_rounded, color: theme.colorScheme.primary),
+            title: Text('Lista de compras', style: theme.textTheme.bodyMedium),
+            onTap: (){
+              Navigator.pushNamed(context, AppRoutes.listaCompras);
             },
           ),
           ListTile(

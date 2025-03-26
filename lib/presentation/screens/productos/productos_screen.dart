@@ -17,8 +17,6 @@ class ProductsPage extends ConsumerStatefulWidget {
 class _ProductsPageState extends ConsumerState<ProductsPage> {
   late ModalAgregarProductos modalAgregarProductos;
 
-  bool _isExpanded = false;
-
   @override
   void initState() {
     super.initState();
@@ -43,6 +41,9 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Inventario de Productos'),
+        backgroundColor: colors.primary,
+        foregroundColor: colors.onPrimary,
+        titleTextStyle: Theme.of(context).textTheme.headlineMedium,
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -55,10 +56,10 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                 return Container(
                   decoration: BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(
-                        color: _isExpanded ? Colors.transparent : Colors.grey,
-                        width: 0.5,
-                      ), // Solo un borde en la parte inferior
+                      bottom: BorderSide.none,
+                      top: BorderSide.none,
+                      left: BorderSide.none,
+                      right: BorderSide.none
                     ),
                   ),
                   child: categoria == null && subcategoria == null
@@ -75,12 +76,21 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                             icon: Icons.delete,
                             label: 'Eliminar',
                           ),
+                          SlidableAction(
+                            onPressed: (context) async {
+                              
+                            },
+                            backgroundColor: colors.primary,
+                            icon: Icons.edit,
+                            label: 'Editar',
+                          ),
                         ],
                       ),
                       child: ExpansionTile(
+                        shape: RoundedRectangleBorder(side: BorderSide.none, borderRadius: BorderRadius.circular(20)),
+                        backgroundColor: colors.primary.withAlpha(15),
                         onExpansionChanged: (bool expanded) {
                           setState(() {
-                            _isExpanded = expanded;
                           });
                         },
                         title: Row(
@@ -118,9 +128,19 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                     icon: Icons.delete,
                                     label: 'Eliminar',
                                   ),
+                                  SlidableAction(
+                                    onPressed: (context) async {
+                                      
+                                    },
+                                    backgroundColor: colors.primary,
+                                    icon: Icons.edit,
+                                    label: 'Editar',
+                                  ),
                                 ],
                               ),
                               child: ExpansionTile(
+                                shape: RoundedRectangleBorder(side: BorderSide.none, borderRadius: BorderRadius.circular(20)),
+                                backgroundColor: colors.primary.withAlpha(10),
                                 title: Text(variante.tipo ?? 'Accesorio'),
                                 children: [
                                   ...variante.colores.map((color) {
@@ -136,9 +156,19 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                             icon: Icons.delete,
                                             label: 'Eliminar',
                                           ),
+                                          SlidableAction(
+                                            onPressed: (context) async {
+                                              
+                                            },
+                                            backgroundColor: colors.primary,
+                                            icon: Icons.edit,
+                                            label: 'Editar',
+                                          ),
                                         ],
                                       ),
                                       child: ExpansionTile(
+                                        shape: RoundedRectangleBorder(side: BorderSide.none, borderRadius: BorderRadius.circular(20)),
+                                        backgroundColor: colors.primary.withAlpha(10),
                                         title: Text(color.color),
                                         children: [
                                           if (color.tallas != null && subcategoria!.usaTallas) ...color.tallas!.map((talla) {
@@ -153,6 +183,14 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                                     backgroundColor: colors.secondary,
                                                     icon: Icons.delete,
                                                     label: 'Eliminar',
+                                                  ),
+                                                  SlidableAction(
+                                                    onPressed: (context) async {
+                                                      
+                                                    },
+                                                    backgroundColor: colors.primary,
+                                                    icon: Icons.edit,
+                                                    label: 'Editar',
                                                   ),
                                                 ],
                                               ),
