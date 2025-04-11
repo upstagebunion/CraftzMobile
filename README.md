@@ -63,14 +63,15 @@ The app uses Flutter Riverpod to manage state for:
 - 🔄 API response tracking and refresh logic
 This ensures clean separation of logic and reactivity across screens.
 
-## 💡 UI/UX Features (formatear tabla)
-Feature	Description
-🔒 Splash screen	Custom splash with session validation
-🧾 Login screen	Email/password login
-📦 Inventory screen	Product grid with variants
-⚠️ Alerts screen	List of low-stock products
-🎨 Custom theme	Branded color scheme + Eras fonts
-📱 Adaptive UI	Designed for tablets and phones
+## 💡 UI/UX Features
+| Feature | Description |
+|---------|-------------|
+| **🔒 Splash screen** |	Custom splash with session validation |
+| **🧾 Login screen** |	Email/password login |
+| **📦 Inventory screen** | Product grid with variants |
+| **⚠️ Alerts screen** | List of low-stock products |
+| **🎨 Custom theme** | Branded color scheme + Eras fonts |
+| **📱 Adaptive UI** | Designed for tablets and phones |
 
 ## 🚀 Getting Started
 ```
