@@ -5,9 +5,9 @@ class Color {
   final String color;
   final List<Talla>? tallas;
   int? stock;
-  final double? precio;
+  final double? costo;
 
-  Color({required this.id, required this.color, this.tallas, this.stock, this.precio});
+  Color({required this.id, required this.color, this.tallas, this.stock, this.costo});
 
   factory Color.fromJson(Map<String, dynamic> json) {
     return Color(
@@ -19,7 +19,7 @@ class Color {
               .toList()
           : null,
       stock: json['stock'] as int?,
-      precio: (json['precio'] as num?)?.toDouble(),
+      costo: json['costo'] != null ? (json['costo'] as num?)?.toDouble() : null,
     );
   }
 
@@ -29,7 +29,7 @@ class Color {
       'color': color,
       'tallas': tallas?.map((talla) => talla.toJson()).toList(),
       'stock': stock,
-      'precio': precio,
+      'costo': costo,
     };
   }
 
@@ -39,7 +39,7 @@ class Color {
       color: this.color,
       tallas: tallas ?? this.tallas,
       stock: stock ?? this.stock,
-      precio: this.precio,
+      costo: this.costo,
       );
   }
 }

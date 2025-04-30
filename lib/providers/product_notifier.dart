@@ -115,9 +115,9 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
-  Future<void> agregarColor(String productoId, String varianteId, String color, int? stock, double? precio) async {
+  Future<void> agregarColor(String productoId, String varianteId, String color, int? stock, double? costo) async {
     try {
-      final response = await apiService.agregarColor(productoId, varianteId, color, stock, precio);
+      final response = await apiService.agregarColor(productoId, varianteId, color, stock, costo);
       final productoActualizado = Producto.fromJson(response);
       state  = CatalogoProductos(productos: 
         state.productos.map((producto) {
@@ -131,9 +131,9 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
-  Future<void> agregarTalla(String productoId, String varianteId, String colorId, String talla, int stock, double precio) async {
+  Future<void> agregarTalla(String productoId, String varianteId, String colorId, String talla, int stock, double costo) async {
     try {
-      final response = await apiService.agregarTalla(productoId, varianteId, colorId, talla, stock, precio);
+      final response = await apiService.agregarTalla(productoId, varianteId, colorId, talla, stock, costo);
       final productoActualizado = Producto.fromJson(response);
       state  = CatalogoProductos(productos: 
         state.productos.map((producto) {

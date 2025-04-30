@@ -91,7 +91,7 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> agregarColor(String productoId, String varianteId, String color, int? stock, double? precio) async {
+  Future<Map<String, dynamic>> agregarColor(String productoId, String varianteId, String color, int? stock, double? costo) async {
     String? token = await getToken();
 
     final response = await http.post(
@@ -103,7 +103,7 @@ class ApiService {
       body: jsonEncode({
         'color': color,
         'stock': stock,
-        'precio': precio,
+        'costo': costo,
       }),
     );
 
@@ -115,7 +115,7 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> agregarTalla(String productoId, String varianteId, String colorId, String talla, int? stock, double? precio) async {
+  Future<Map<String, dynamic>> agregarTalla(String productoId, String varianteId, String colorId, String talla, int? stock, double? costo) async {
     String? token = await getToken();
 
     final response = await http.post(
@@ -127,7 +127,7 @@ class ApiService {
       body: jsonEncode({
         'talla': talla,
         'stock': stock,
-        'precio': precio,
+        'costo': costo,
       }),
     );
 

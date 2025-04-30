@@ -59,7 +59,7 @@ class ModalAgregarProductos {
   void mostrarFormularioAgregarColor(BuildContext context, Producto producto, Variante variante, Subcategoria subcategoria) {
     final TextEditingController colorController = TextEditingController();
     final TextEditingController stockController = TextEditingController();
-    final TextEditingController precioController = TextEditingController();
+    final TextEditingController costoController = TextEditingController();
     final bool usaTallas = subcategoria.usaTallas;
 
     showModalBottomSheet(
@@ -93,8 +93,8 @@ class ModalAgregarProductos {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
-                    controller: precioController,
-                    decoration: InputDecoration(labelText: 'Precio'),
+                    controller: costoController,
+                    decoration: InputDecoration(labelText: 'Costo'),
                     keyboardType: TextInputType.number,
                   ),
                 ),
@@ -108,7 +108,7 @@ class ModalAgregarProductos {
                         variante.id,
                         nuevoColor,
                         !usaTallas ? int.parse(stockController.text) : null,
-                        !usaTallas ? double.parse(precioController.text) : null,
+                        !usaTallas ? double.parse(costoController.text) : null,
                       );
                       Navigator.pop(context);
                     } catch (e) {
@@ -131,7 +131,7 @@ class ModalAgregarProductos {
   void mostrarFormularioAgregarTalla(BuildContext context, Producto producto, Variante variante, Color color) {
     final TextEditingController tallaController = TextEditingController();
     final TextEditingController stockController = TextEditingController();
-    final TextEditingController precioController = TextEditingController();
+    final TextEditingController costoController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
@@ -162,8 +162,8 @@ class ModalAgregarProductos {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
-                  controller: precioController,
-                  decoration: InputDecoration(labelText: 'Precio'),
+                  controller: costoController,
+                  decoration: InputDecoration(labelText: 'Costo'),
                   keyboardType: TextInputType.number,
                 ),
               ),
@@ -178,7 +178,7 @@ class ModalAgregarProductos {
                         color.id,
                         nuevaTalla,
                         int.parse(stockController.text),
-                        double.parse(precioController.text),
+                        double.parse(costoController.text),
                       );
                       Navigator.pop(context);
                     } catch (e) {

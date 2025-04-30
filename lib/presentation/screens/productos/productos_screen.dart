@@ -195,7 +195,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                                 ],
                                               ),
                                               child: ListTile(
-                                                title: Text('${talla.talla} - \$${talla.precio}'),
+                                                title: Text('${talla.talla} - \$${talla.costo}'),
                                                 subtitle: Text('Stock: ${talla.stock}'),
                                                 trailing: Row(
                                                   mainAxisSize: MainAxisSize.min,
@@ -223,6 +223,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                           }).toList(),
                                           if (!subcategoria!.usaTallas) ListTile(
                                             title: Text('Stock: ${color.stock}'),
+                                            subtitle: Text('\$${color.costo}'),
                                             trailing: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
