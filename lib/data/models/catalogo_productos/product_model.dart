@@ -62,15 +62,15 @@ class Producto {
     };
   }
 
-  Producto copyWith({List<Variante>? variantes}) {
+  Producto copyWith({List<Variante>? variantes, String? nombre, String? descripcion, String? categoria, String? subcategoria, String? calidad, String? corte}) {
     return Producto(
       id: this.id,
-      nombre: this.nombre,
-      descripcion: this.descripcion,
-      categoria: this.categoria,
-      subcategoria: this.subcategoria,
-      calidad: this.calidad,
-      corte: this.corte,
+      nombre: nombre ?? this.nombre,
+      descripcion: descripcion ?? this.descripcion,
+      categoria: categoria ?? this.categoria,
+      subcategoria: subcategoria ?? this.subcategoria,
+      calidad: calidad ?? this.calidad,
+      corte: corte ?? this.corte,
       variantes: variantes ?? this.variantes,
       imagenes: this.imagenes,
       activo: this.activo,

@@ -11,8 +11,8 @@ class ModalAgregarProductos {
   ModalAgregarProductos(this.ref, this.categories);
 
   // Método para mostrar el formulario de agregar variante
-  void mostrarFormularioAgregarVariante(BuildContext context, Producto producto) {
-    final TextEditingController tipoController = TextEditingController();
+  void mostrarFormularioVariante(BuildContext context, Producto producto, {bool isEditing = false, Variante? variante}) {
+    final TextEditingController tipoController = TextEditingController(text: isEditing && variante?.tipo != null ? variante!.tipo.toString() : '');
 
     showModalBottomSheet(
       context: context,
@@ -37,7 +37,13 @@ class ModalAgregarProductos {
                   final nuevoTipo = tipoController.text.trim();
                   if (nuevoTipo.isNotEmpty) {
                     try {
-                      await ref.read(productosProvider.notifier).agregarVariante(producto.id, nuevoTipo);
+                      isEditing 
+                      ? ref.read(productosProvider.notifier).editarVariante(
+                        producto.id,
+                        variante!.id,
+                        nuevoTipo,
+                      )
+                      : await ref.read(productosProvider.notifier).agregarVariante(producto.id, nuevoTipo);
                       Navigator.pop(context);
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -56,10 +62,10 @@ class ModalAgregarProductos {
   }
 
   // Método para mostrar el formulario de agregar color
-  void mostrarFormularioAgregarColor(BuildContext context, Producto producto, Variante variante, Subcategoria subcategoria) {
-    final TextEditingController colorController = TextEditingController();
-    final TextEditingController stockController = TextEditingController();
-    final TextEditingController costoController = TextEditingController();
+  void mostrarFormularioColor(BuildContext context, Producto producto, Variante variante, Subcategoria subcategoria, {bool isEditing = false, Color? color}) {
+    final TextEditingController colorController = TextEditingController(text: isEditing ? color?.color : '');
+    final TextEditingController stockController = TextEditingController(text: isEditing && color?.stock != null ? color!.stock.toString() : '');
+    final TextEditingController costoController = TextEditingController(text: isEditing && color?.costo != null ? color!.costo.toString() : '');
     final bool usaTallas = subcategoria.usaTallas;
 
     showModalBottomSheet(
@@ -103,7 +109,16 @@ class ModalAgregarProductos {
                   final nuevoColor = colorController.text.trim();
                   if (nuevoColor.isNotEmpty) {
                     try {
-                      await ref.read(productosProvider.notifier).agregarColor(
+                      isEditing 
+                      ? await ref.read(productosProvider.notifier).editarColor(
+                        producto.id,
+                        variante.id,
+                        color!.id,
+                        nuevoColor,
+                        !usaTallas ? int.parse(stockController.text) : null,
+                        !usaTallas ? double.parse(costoController.text) : null
+                      )
+                      : await ref.read(productosProvider.notifier).agregarColor(
                         producto.id,
                         variante.id,
                         nuevoColor,
@@ -128,10 +143,10 @@ class ModalAgregarProductos {
   }
 
   // Método para mostrar el formulario de agregar talla
-  void mostrarFormularioAgregarTalla(BuildContext context, Producto producto, Variante variante, Color color) {
-    final TextEditingController tallaController = TextEditingController();
-    final TextEditingController stockController = TextEditingController();
-    final TextEditingController costoController = TextEditingController();
+  void mostrarFormularioTalla(BuildContext context, Producto producto, Variante variante, Color color, {bool isEditing = false, Talla? talla}) {
+    final TextEditingController tallaController = TextEditingController(text: isEditing ? talla?.talla : '');
+    final TextEditingController stockController = TextEditingController(text: isEditing && talla?.stock != null ? talla!.stock.toString() : '');
+    final TextEditingController costoController = TextEditingController(text: isEditing && talla?.costo != null ? talla!.costo.toString() : '');
 
     showModalBottomSheet(
       context: context,
@@ -172,7 +187,17 @@ class ModalAgregarProductos {
                   final nuevaTalla = tallaController.text.trim();
                   if (nuevaTalla.isNotEmpty) {
                     try {
-                      await ref.read(productosProvider.notifier).agregarTalla(
+                      isEditing 
+                      ? await ref.read(productosProvider.notifier).editarTalla(
+                        producto.id,
+                        variante.id,
+                        color.id,
+                        talla!.id,
+                        nuevaTalla, 
+                        int.parse(stockController.text),
+                        double.parse(costoController.text)
+                        )
+                      : await ref.read(productosProvider.notifier).agregarTalla(
                         producto.id,
                         variante.id,
                         color.id,

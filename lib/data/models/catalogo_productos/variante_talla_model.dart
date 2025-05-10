@@ -24,12 +24,12 @@ class Talla {
     };
   }
 
-  Talla copyWith({int? stock}) {
+  Talla copyWith({int? stock, String? talla, double? costo}) {
     return Talla(
       id: this.id,
-      talla: this.talla,
+      talla: talla ?? this.talla,
       stock: stock ?? this.stock,
-      costo: this.costo,
+      costo: costo ?? this.costo,
     );
   }
 }

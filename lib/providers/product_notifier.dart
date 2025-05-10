@@ -204,4 +204,122 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
       throw Exception('Error al eliminar el producto: $e');
     }
   }
+
+  Future<void> editarColor(
+    String productoId, 
+    String varianteId, 
+    String colorId, 
+    String nuevoColor, 
+    int? nuevoStock,
+    double? nuevoCosto
+  ) async {
+    final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
+    if (productoIndex == -1) return;
+
+    final producto = state.productos[productoIndex];
+    final updatedVariantes = producto.variantes?.map((variante) {
+      if (variante.id == varianteId) {
+        final updatedColores = variante.colores.map((color) {
+          if (color.id == colorId) {
+            return color.copyWith(
+              color: nuevoColor,
+              stock: nuevoStock ?? color.stock,
+              costo: nuevoCosto ?? color.costo,
+            );
+          }
+          return color;
+        }).toList();
+        return variante.copyWith(colores: updatedColores);
+      }
+      return variante;
+    }).toList();
+
+    final updatedProducto = producto.copyWith(variantes: updatedVariantes);
+    final updatedProductos = List<Producto>.from(state.productos);
+    updatedProductos[productoIndex] = updatedProducto;
+
+    state = CatalogoProductos(productos: updatedProductos);
+  }
+
+  Future<void> editarTalla(
+    String productoId, 
+    String varianteId, 
+    String colorId, 
+    String tallaId, 
+    String? nuevaTalla, 
+    int? nuevoStock,
+    double? nuevoCosto
+  ) async {
+    final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
+    if (productoIndex == -1) return;
+
+    final producto = state.productos[productoIndex];
+    final updatedVariantes = producto.variantes?.map((variante) {
+      if (variante.id == varianteId) {
+        final updatedColores = variante.colores.map((color) {
+          if (color.id == colorId) {
+            final updatedTallas = color.tallas?.map((talla) {
+              if (talla.id == tallaId) {
+                return talla.copyWith(
+                  talla: nuevaTalla ?? talla.talla,
+                  stock: nuevoStock ?? talla.stock,
+                  costo: nuevoCosto ?? talla.costo,
+                );
+              }
+              return talla;
+            }).toList();
+            return color.copyWith(tallas: updatedTallas);
+          }
+          return color;
+        }).toList();
+        return variante.copyWith(colores: updatedColores);
+      }
+      return variante;
+    }).toList();
+
+    final updatedProducto = producto.copyWith(variantes: updatedVariantes);
+    final updatedProductos = List<Producto>.from(state.productos);
+    updatedProductos[productoIndex] = updatedProducto;
+
+    state = CatalogoProductos(productos: updatedProductos);
+  }
+
+  void editarVariante(String productoId, String varianteId, String nuevoTipo) {
+    final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
+    if (productoIndex == -1) return;
+
+    final producto = state.productos[productoIndex];
+    final updatedVariantes = producto.variantes?.map((variante) {
+      if (variante.id == varianteId) {
+        return variante.copyWith(tipo: nuevoTipo);
+      }
+      return variante;
+    }).toList();
+
+    final updatedProducto = producto.copyWith(variantes: updatedVariantes);
+    final updatedProductos = List<Producto>.from(state.productos);
+    updatedProductos[productoIndex] = updatedProducto;
+
+    state = CatalogoProductos(productos: updatedProductos);
+  }
+
+  void editarProducto(String productoId, Map<String, dynamic> nuevosDatos) {
+    final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
+    if (productoIndex == -1) return;
+
+    final producto = state.productos[productoIndex];
+    final updatedProducto = producto.copyWith(
+      nombre: nuevosDatos['nombre'] ?? producto.nombre,
+      descripcion: nuevosDatos['descripcion'] ?? producto.descripcion,
+      categoria : nuevosDatos['categoria'] ?? producto.categoria,
+      subcategoria : nuevosDatos['subcategoria'] ?? producto.subcategoria,
+      calidad : nuevosDatos['calidad'] ?? producto.calidad,
+      corte : nuevosDatos['corte'] ?? producto.corte
+    );
+
+    final updatedProductos = List<Producto>.from(state.productos);
+    updatedProductos[productoIndex] = updatedProducto;
+
+    state = CatalogoProductos(productos: updatedProductos);
+    }
 }

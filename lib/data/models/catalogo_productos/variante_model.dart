@@ -4,9 +4,8 @@ class Variante {
   final String id;
   final String? tipo;
   final List<Color> colores;
-  bool isExpanded;
 
-  Variante({required this.id, this.tipo, required this.colores, this.isExpanded = false});
+  Variante({required this.id, this.tipo, required this.colores});
 
   factory Variante.fromJson(Map<String, dynamic> json) {
     return Variante(
@@ -14,8 +13,7 @@ class Variante {
       tipo: json['tipo'] as String?,
       colores: (json['colores'] as List)
           .map((color) => Color.fromJson(color))
-          .toList(),
-      isExpanded : false,
+          .toList()
     );
   }
 
@@ -25,5 +23,13 @@ class Variante {
       'tipo': tipo,
       'colores': colores.map((color) => color.toJson()).toList(),
     };
+  }
+
+  Variante copyWith({List<Color>? colores, String? tipo}) {
+    return Variante(
+      id: this.id,
+      colores: colores ?? this.colores,
+      tipo: tipo ?? this.tipo
+      );
   }
 }

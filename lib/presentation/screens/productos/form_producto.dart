@@ -4,28 +4,64 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/product_notifier.dart';
 import '../../../providers/categories_provider.dart';
 import '../../../services/api_service.dart';
+import '../../../data/models/catalogo_productos/product_model.dart';
 
-class AgregarProductoScreen extends ConsumerStatefulWidget {
+class FormProductoScreen extends ConsumerStatefulWidget {
+  final bool isEditing;
+  final Producto? producto;
+
+  const FormProductoScreen({
+    Key? key,
+    this.isEditing = false,
+    this.producto = null,
+  }) : super(key: key);
+
   @override
-  _AgregarProductoScreenState createState() => _AgregarProductoScreenState();
+  _FormProductoScreenState createState() => _FormProductoScreenState();
 }
 
-class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
+class _FormProductoScreenState extends ConsumerState<FormProductoScreen> {
   final _formKey = GlobalKey<FormState>();
   ApiService apiService = ApiService();
 
-  final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _descripcionController = TextEditingController();
-  final TextEditingController _calidadController = TextEditingController();
-  final TextEditingController _corteController = TextEditingController();
+  late TextEditingController _nombreController;
+  late TextEditingController _descripcionController;
+  late TextEditingController _calidadController;
+  late TextEditingController _corteController;
 
   late CatalogoCategorias catalogoCategorias;
   String? _selectedCategoriaId;
   String? _selectedSubcategoriaId;
 
-   @override
+  @override
   void initState() {
     super.initState();
+    _nombreController = TextEditingController(
+      text: widget.isEditing ? widget.producto?.nombre : ''
+    );
+    _descripcionController = TextEditingController(
+      text: widget.isEditing ? widget.producto?.descripcion : ''
+    );
+    _calidadController = TextEditingController(
+      text: widget.isEditing ? widget.producto?.calidad : ''
+    );
+    _corteController = TextEditingController(
+      text: widget.isEditing ? widget.producto?.corte : ''
+    );
+
+    if(widget.isEditing && widget.producto != null) {
+      _selectedCategoriaId = widget.producto!.categoria;
+      _selectedSubcategoriaId = widget.producto!.subcategoria;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nombreController.dispose();
+    _descripcionController.dispose();
+    _calidadController.dispose();
+    _corteController.dispose();
+    super.dispose();
   }
 
   @override
@@ -35,7 +71,7 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Agregar Producto'),
+        title: Text(widget.isEditing ? 'Editar Producto' : 'Agregar Producto'),
         backgroundColor: colors.primary,
         foregroundColor: colors.onPrimary,
         titleTextStyle: Theme.of(context).textTheme.headlineMedium,
@@ -137,7 +173,14 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
                     };
 
                     try {
-                      await ref.read(productosProvider.notifier).agregarProducto(producto);
+                      if (widget.isEditing && widget.producto != null) {
+                        ref.read(productosProvider.notifier).editarProducto(
+                          widget.producto!.id,
+                          producto
+                        );
+                      } else {
+                        await ref.read(productosProvider.notifier).agregarProducto(producto);
+                      }
                       Navigator.pop(context, true);
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -146,7 +189,7 @@ class _AgregarProductoScreenState extends ConsumerState<AgregarProductoScreen> {
                     }
                   }
                 },
-                child: Text('Guardar Producto'),
+                child: Text(widget.isEditing ? 'Actualizar Producto' : 'Guardar Producto'),
               ),
             ],
           ),

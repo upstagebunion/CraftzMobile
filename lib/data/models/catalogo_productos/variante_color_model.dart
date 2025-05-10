@@ -33,13 +33,13 @@ class Color {
     };
   }
 
-  Color copyWith({int? stock, List<Talla>? tallas}) {
+  Color copyWith({int? stock, List<Talla>? tallas, String? color, double? costo}) {
     return Color(
       id: this.id,
-      color: this.color,
+      color: color ?? this.color,
       tallas: tallas ?? this.tallas,
       stock: stock ?? this.stock,
-      costo: this.costo,
+      costo: costo ?? this.costo,
       );
   }
 }

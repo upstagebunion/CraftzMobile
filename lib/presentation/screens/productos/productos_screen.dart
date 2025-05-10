@@ -7,7 +7,7 @@ import '../../../providers/product_notifier.dart';
 import '../../../providers/categories_provider.dart' as proveedorCategorias;
 import '../../../controllers/products_controller.dart';
 import './modal_agregar_productos.dart';
-import './agregar_producto.dart';
+import 'form_producto.dart';
 
 class ProductsPage extends ConsumerStatefulWidget {
   @override
@@ -33,6 +33,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     final ColorScheme colors = Theme.of(context).colorScheme;
     final CatalogoCategorias categorias = ref.watch(proveedorCategorias.categoriesProvider);
     modalAgregarProductos = ModalAgregarProductos(ref, categorias);
+    final currentContext = context;
     // Obtenemos el estado de carga
     final isLoading = ref.watch(isLoadingProvider) || ref.watch(proveedorCategorias.isLoadingCategories);
     final catalogo = ref.watch(productosProvider);
@@ -78,7 +79,21 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                           ),
                           SlidableAction(
                             onPressed: (context) async {
-                              
+                              final bool? hasSucceed = await Navigator.push(
+                                currentContext,
+                                MaterialPageRoute(
+                                  builder: (context) => FormProductoScreen(
+                                    isEditing: true,
+                                    producto: producto
+                                  ),
+                                ),
+                              );
+                              if (hasSucceed != null && hasSucceed) {
+                                if(!currentContext.mounted) return;
+                                ScaffoldMessenger.of(currentContext).showSnackBar(
+                                  SnackBar(content: Text('Producto actualizado exitosamente')),
+                                );
+                              }
                             },
                             backgroundColor: colors.primary,
                             icon: Icons.edit,
@@ -130,7 +145,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                   ),
                                   SlidableAction(
                                     onPressed: (context) async {
-                                      
+                                      modalAgregarProductos.mostrarFormularioVariante(context, producto, isEditing: true, variante: variante);
                                     },
                                     backgroundColor: colors.primary,
                                     icon: Icons.edit,
@@ -158,7 +173,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                           ),
                                           SlidableAction(
                                             onPressed: (context) async {
-                                              
+                                              modalAgregarProductos.mostrarFormularioColor(context, producto, variante, subcategoria!, isEditing: true, color:color);
                                             },
                                             backgroundColor: colors.primary,
                                             icon: Icons.edit,
@@ -186,7 +201,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                                   ),
                                                   SlidableAction(
                                                     onPressed: (context) async {
-                                                      
+                                                      modalAgregarProductos.mostrarFormularioTalla(context, producto, variante, color, isEditing: true, talla:talla);
                                                     },
                                                     backgroundColor: colors.primary,
                                                     icon: Icons.edit,
@@ -249,7 +264,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                           if (subcategoria.usaTallas)
                                             TextButton(
                                               onPressed: () {
-                                                modalAgregarProductos.mostrarFormularioAgregarTalla(context, producto, variante, color);
+                                                modalAgregarProductos.mostrarFormularioTalla(context, producto, variante, color, isEditing: false);
                                               },
                                               child: Text('Agregar Talla'),
                                             ),
@@ -259,7 +274,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                   }).toList(),
                                   TextButton(
                                     onPressed: () {
-                                      modalAgregarProductos.mostrarFormularioAgregarColor(context, producto, variante, subcategoria!);
+                                      modalAgregarProductos.mostrarFormularioColor(context, producto, variante, subcategoria!, isEditing: false);
                                     },
                                     child: Text('Agregar Color'),
                                   ),
@@ -269,7 +284,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                           }).toList(),
                           TextButton(
                             onPressed: () {
-                              modalAgregarProductos.mostrarFormularioAgregarVariante(context, producto);
+                              modalAgregarProductos.mostrarFormularioVariante(context, producto);
                             },
                             child: Text('Agregar Variante'),
                           ),
@@ -308,7 +323,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                 final bool? hasSucceed = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AgregarProductoScreen(),
+                    builder: (context) => FormProductoScreen(),
                   ),
                 );
                 if (hasSucceed != null && hasSucceed) {
