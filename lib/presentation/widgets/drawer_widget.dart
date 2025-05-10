@@ -46,7 +46,7 @@ class CustomDrawer extends StatelessWidget{
             leading: Icon(Icons.monetization_on, color: theme.colorScheme.primary),
             title: Text('Cotización', style: theme.textTheme.bodyMedium),
             onTap: (){
-
+              Navigator.pushNamed(context, AppRoutes.cotizaciones);
             },
           ),
           ListTile(

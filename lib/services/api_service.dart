@@ -233,4 +233,14 @@ class ApiService {
       throw 'Error al obtener las categorias: ${mensaje}';
     }
   }
+
+  Future<List<dynamic>> getExtras() async {
+    List<dynamic> result = [];
+    return result;
+  }
+
+  Future<Map<String, dynamic>> agregarExtra(json) async {
+    Map<String, dynamic> result = {};
+    return result;
+  }
 }
