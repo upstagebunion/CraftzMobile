@@ -30,9 +30,7 @@ class _ListaComprasScreenState extends ConsumerState<ListaComprasScreen> {
     final CatalogoProductos catalogo = ref.watch(productosProvider);
     final isLoading = ref.watch(isLoadingProvider) || ref.watch(isLoadingCategories);
 
-    return isLoading
-    ? Center(child: CircularProgressIndicator())
-    : Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: Text('Productos Faltos de Stock'),
         backgroundColor: colors.primary,
@@ -42,15 +40,17 @@ class _ListaComprasScreenState extends ConsumerState<ListaComprasScreen> {
           IconButton(
             icon: Icon(Icons.filter_list),
             onPressed: () {
-              // Aquí puedes implementar la lógica de filtrado
+              // TODO: Filtrado de productos por comprar
             },
           ),
         ],
       ),
-      body: ProductosFaltosStockScreen(categorias, catalogo),
+      body: isLoading
+      ? Center(child: CircularProgressIndicator())
+      :  ProductosFaltosStockScreen(categorias, catalogo),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Aquí puedes implementar la generación de la lista de compra
+          // TODO: Generacion de PDF de lista de compras
         },
         child: Icon(Icons.shopping_cart),
       ),

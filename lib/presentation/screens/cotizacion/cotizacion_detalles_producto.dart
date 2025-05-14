@@ -23,6 +23,8 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
 
   @override
   Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
     // Obtener la subcategoría usando el método del notifier
     final subcategoria = ref.read(categoriesProvider.notifier).getSubcategoria(widget.producto);
     
@@ -36,7 +38,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
         children: [
           Text(
             widget.producto.nombre,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
           
@@ -46,7 +48,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
           
           // Selector de color (si tiene)
           if (varianteSeleccionada != null && varianteSeleccionada!.colores.isNotEmpty)
-            _buildColorSelector(),
+            _buildColorSelector(usaTallas),
           
           // Selector de talla (si la subcategoría usa tallas)
           if (usaTallas)
@@ -55,9 +57,16 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
           
           // Selector de cantidad
           _buildCantidadSelector(),
-          
+
+          if((usaTallas && tallaSeleccionada != null) || (!usaTallas && colorSeleccionado != null))
+            _buildStockVerification(usaTallas),
+            
           // Botón para agregar
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor:colors.primary,
+              foregroundColor: colors.onPrimary,
+            ), //TODO: Antes de agregar, seleccionar un extra de tipo cm_cuadrado para el estampado
             onPressed: _puedeAgregar(usaTallas) ? () => _agregarProducto(ref) : null,
             child: const Text('Agregar a cotización'),
           ),
@@ -82,12 +91,24 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
     final usaTallas = subcategoria?.usaTallas ?? false;
 
     // Calcular precio base
+    //TODO: Agregar logica para calcular precios de forma variable con los parametros y extras
     double precioBase = 0;
     if (usaTallas && tallaSeleccionada != null) {
       precioBase = tallaSeleccionada!.costo ?? 0;
     } else if (colorSeleccionado != null) {
       precioBase = colorSeleccionado!.costo ?? 0;
     }
+
+    final precioDTFPorM2 = 0.05;
+    final anchoEstandar = 30;
+    final largoEstandar = 45;
+    final precioDtf = (anchoEstandar * largoEstandar) * precioDTFPorM2;
+    final constanteCostos = 15;
+    final factorManoObra = 1.2;
+    final iva = 1.16;
+
+    precioBase = (precioBase + precioDtf + constanteCostos) * factorManoObra;
+    final precioNeto = precioBase * iva; 
 
     final productoCotizado = ProductoCotizado(
       productoRef: widget.producto.id,
@@ -115,8 +136,8 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
           : null,
       extras: extrasSeleccionados,
       cantidad: cantidad,
-      precio: precioBase,
-      precioFinal: precioBase * cantidad,
+      precio: precioNeto,
+      precioFinal: precioNeto * cantidad,
     );
 
     ref.read(cotizacionProvider.notifier).agregarProducto(productoCotizado);
@@ -130,7 +151,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
       items: widget.producto.variantes!.map((variante) {
         return DropdownMenuItem(
           value: variante,
-          child: Text(variante.tipo ?? 'Sin tipo'),
+          child: Text(variante.tipo ?? 'Sin tipo', style: Theme.of(context).textTheme.bodyLarge),
         );
       }).toList(),
       onChanged: (variante) {
@@ -143,16 +164,28 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
     );
   }
 
-  Widget _buildColorSelector() {
+  Widget _buildColorSelector(bool usaTallas) {
     return DropdownButtonFormField<Color>(
       decoration: const InputDecoration(labelText: 'Color'),
       value: colorSeleccionado,
       items: varianteSeleccionada!.colores.map((color) {
         return DropdownMenuItem(
           value: color,
-          child: Text(color.color),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(color.color, style: Theme.of(context).textTheme.bodyLarge),
+              if(!usaTallas)
+                Text('Stock Actual: ' + color.stock.toString(), style: Theme.of(context).textTheme.bodyLarge)
+            ],
+          ),
         );
       }).toList(),
+      selectedItemBuilder: (context){
+        return varianteSeleccionada!.colores.map((color) {
+          return Text(color.color, style: Theme.of(context).textTheme.bodyLarge);
+        }).toList();
+      },
       onChanged: (color) {
         setState(() {
           colorSeleccionado = color;
@@ -169,9 +202,20 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
       items: colorSeleccionado!.tallas!.map((talla) {
         return DropdownMenuItem(
           value: talla,
-          child: Text(talla.talla ?? 'Sin talla'),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(talla.talla ?? 'Sin talla', style: Theme.of(context).textTheme.bodyLarge),
+              Text('Stock Actual: ' + talla.stock.toString(), style: Theme.of(context).textTheme.bodyLarge)
+            ]
+          ),
         );
       }).toList(),
+      selectedItemBuilder: (context){
+        return colorSeleccionado!.tallas!.map((talla) {
+          return Text(talla.talla ?? 'Sin Talla', style: Theme.of(context).textTheme.bodyLarge);
+        }).toList();
+      },
       onChanged: (talla) {
         setState(() {
           tallaSeleccionada = talla;
@@ -198,6 +242,34 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
           onPressed: () => setState(() => cantidad++),
         ),
       ],
+    );
+  }
+
+   Widget _buildStockVerification(bool usaTallas) {
+    bool underStock = false;
+    if (usaTallas){
+      if (tallaSeleccionada!.stock < cantidad){
+        underStock = true;
+      }
+    } else {
+      if (colorSeleccionado!.stock! < cantidad) {
+        underStock = true;
+      }
+    }
+    return Column(
+      children: [
+        Text(
+          underStock 
+          ? 'La cantidad de pedido supera el stock actual, podría generar retrasos.'
+          : 'Hay suficiente stock para esta prenda',
+          style: underStock
+          ? Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.red[400])
+          : Theme.of(context).textTheme.bodyMedium!.copyWith(color: Colors.green[600])
+        ),
+        SizedBox(
+          height: 20,
+        )
+      ]
     );
   }
 }

@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import '../providers/product_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/repositories/catalogo_productos_repositorie.dart';
+import '../data/repositories/categorias_repositorie.dart';
 
 class ProductsController {
   final WidgetRef ref;
 
   ProductsController(this.ref);
+
+  List<Producto> obtenerProductosPorSubcategoria(List<Producto> productos, Subcategoria subcategoria) {
+    final productosPorCategoria = productos.where((producto) => producto.subcategoria == subcategoria.id).toList();
+    return productosPorCategoria;
+  }
 
   Future<void> guardarCambios(context) async {
     try {

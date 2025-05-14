@@ -1,11 +1,14 @@
-
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:craftz_app/data/models/cotizacion/producto_cotizado_model.dart';
 import 'package:craftz_app/data/repositories/catalogo_productos_repositorie.dart';
+import 'package:craftz_app/data/repositories/categorias_repositorie.dart';
+
 import 'package:craftz_app/providers/cotizaciones_provider.dart';
+import 'package:craftz_app/providers/categories_provider.dart' as proveedorCategorias;
 import 'package:craftz_app/providers/product_notifier.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import './cotizacion_resumen.dart';
 import './cotizacion_selector_productos.dart';
 import './cotizacion_tile_producto.dart';
@@ -15,9 +18,17 @@ class CotizacionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final productos = ref.watch(productosProvider).productos;
-    final isLoading = ref.watch(isLoadingProvider);
-
+    final isLoading = ref.watch(isLoadingProvider) || ref.watch(proveedorCategorias.isLoadingCategories);
+    late final productos;
+    late final categorias;
+    if (isLoading) {
+      ref.read(productosProvider.notifier).cargarProductos();
+      ref.read(proveedorCategorias.categoriesProvider.notifier).cargarCategorias();
+    } else {
+      productos = ref.watch(productosProvider).productos;
+      categorias = ref.watch(proveedorCategorias.categoriesProvider).categorias;
+    }
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nueva Cotización'),
@@ -28,12 +39,20 @@ class CotizacionScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _buildContent(context, ref, productos),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _mostrarSelectorProductos(context, ref, productos),
-        child: const Icon(Icons.add),
+      body: Stack( 
+        children: [
+          isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _buildContent(context, ref, productos),
+          Positioned(
+            right: 16,
+            top: MediaQuery.of(context).size.height - 320,
+            child: FloatingActionButton(
+              onPressed: () => _mostrarSelectorProductos(context, ref, productos, categorias),
+              child: const Icon(Icons.add)
+            )
+          ),
+        ]
       ),
     );
   }
@@ -63,12 +82,12 @@ class CotizacionScreen extends ConsumerWidget {
     );
   }
 
-  void _mostrarSelectorProductos(BuildContext context, WidgetRef ref, List<Producto> productos) {
+  void _mostrarSelectorProductos(BuildContext context, WidgetRef ref, List<Producto> productos, List<Categoria> categorias) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return SelectorProductosBottomSheet(productos: productos);
+        return SelectorProductosBottomSheet(productos: productos, categorias: categorias);
       },
     );
   }

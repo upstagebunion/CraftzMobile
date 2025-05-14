@@ -56,6 +56,20 @@ class CustomDrawer extends StatelessWidget{
 
             },
           ),
+          ListTile(
+            leading: Icon(Icons.add_shopping_cart, color: theme.colorScheme.primary),
+            title: Text('Extras', style: theme.textTheme.bodyMedium),
+            onTap: (){
+              Navigator.pushNamed(context, AppRoutes.extras);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.settings, color: theme.colorScheme.primary),
+            title: Text('Parametros de costo', style: theme.textTheme.bodyMedium),
+            onTap: (){
+              Navigator.pushNamed(context, AppRoutes.parametrosCostos);
+            },
+          ),
         ],
       ),
     );

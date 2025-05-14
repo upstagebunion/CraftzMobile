@@ -1,4 +1,4 @@
-import './extra_model.dart';
+import '../extras/extra_model.dart';
 import './descuento_model.dart';
 
 class ProductoCotizado {

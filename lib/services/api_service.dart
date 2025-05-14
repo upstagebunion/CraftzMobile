@@ -235,12 +235,98 @@ class ApiService {
   }
 
   Future<List<dynamic>> getExtras() async {
-    List<dynamic> result = [];
-    return result;
+    String? token = await getToken();
+
+    final response = await http.get(
+    Uri.parse('$baseUrl/api/extras/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['extras'];
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'];
+      throw 'Error al obtener las categorias: ${mensaje}';
+    }
   }
 
   Future<Map<String, dynamic>> agregarExtra(json) async {
-    Map<String, dynamic> result = {};
-    return result;
+    String? token = await getToken();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/extras/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+      body: jsonEncode({
+        'nombre': json['nombre'],
+        'unidad': json['unidad'],
+        'monto':  json['monto'],
+        'anchoCm':  json['anchoCm'],
+        'largoCm':  json['largoCm'],
+        'parametroCalculoId':  json['parametroCalculoId'],
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body)['data'];
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'];
+      throw 'Error al obtener las categorias: ${mensaje}';
+    }
   }
+
+  Future<List<dynamic>> getCostosElaboracion() async {
+    String? token = await getToken();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/parametrosCostos/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['costos'];
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'];
+      throw 'Error al obtener los costos de elaboración: $mensaje';
+    }
+  }
+
+  Future<Map<String, dynamic>> agregarParametroCostoElaboracion(json) async {
+    String? token = await getToken();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/parametrosCostos/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+      body: jsonEncode({
+      'nombre': json['nombre'],
+      'descripcion': json['descripcion'],
+      'unidad': json['unidad'],
+      'monto': json['monto'],
+      'anchoPlancha': json['anchoPlancha'],
+      'largoPlancha': json['largoPlancha'],
+      'subcategoriasAplica': json['subcategoriasAplica'],
+      'tipoAplicacion': json['tipoAplicacion'],
+      'prioridad': json['prioridad'],
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body)['data'];
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'];
+      throw 'Error al obtener las categorias: ${mensaje}';
+    }
+  }
+
 }

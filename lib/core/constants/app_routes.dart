@@ -9,6 +9,8 @@ class AppRoutes {
   static const String agregarProducto = '/agregarProducto';
   static const String listaCompras = '/listaCompras';
   static const String cotizaciones = '/cotizaciones';
+  static const String extras = '/extras';
+  static const String parametrosCostos = '/parametrosCostos';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -18,6 +20,8 @@ class AppRoutes {
       agregarProducto: (context) => FormProductoScreen(),
       listaCompras: (context) => ListaComprasScreen(),
       cotizaciones: (context) => CotizacionScreen(),
+      extras: (context) => ExtrasScreen(),
+      parametrosCostos: (context) => CostosElaboracionScreen(),
     };
   }
 }
