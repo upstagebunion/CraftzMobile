@@ -93,7 +93,6 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
     final usaTallas = subcategoria?.usaTallas ?? false;
 
     // Calcular precio base
-    //TODO: Agregar logica para calcular precios de forma variable con los parametros y extras
     double precioBase = 0;
     if (usaTallas && tallaSeleccionada != null) {
       precioBase = tallaSeleccionada!.costo ?? 0;
@@ -102,17 +101,6 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
     }
 
     final precioNeto = await calculador.calcularPrecioFinal(subcategoriaId: widget.producto.subcategoria, extras: [], precioBase: precioBase);
-
-    /*final precioDTFPorM2 = 0.05;
-    final anchoEstandar = 30;
-    final largoEstandar = 45;
-    final precioDtf = (anchoEstandar * largoEstandar) * precioDTFPorM2;
-    final constanteCostos = 15;
-    final factorManoObra = 1.2;
-    final iva = 1.16;
-
-    precioBase = (precioBase + precioDtf + constanteCostos) * factorManoObra;
-    final precioNeto = precioBase * iva; */
 
     final productoCotizado = ProductoCotizado(
       productoRef: widget.producto.id,

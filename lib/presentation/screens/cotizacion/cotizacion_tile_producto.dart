@@ -1,3 +1,4 @@
+import 'package:craftz_app/data/models/extras/parametro_costo_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -6,6 +7,7 @@ import '../../../data/repositories/cotizacion_repositories.dart';
 import 'package:craftz_app/providers/product_notifier.dart';
 import 'package:craftz_app/providers/extras_provider.dart';
 import 'package:craftz_app/core/utils/calculadorCosto.dart';
+import 'package:craftz_app/providers/parametros_costos_provider.dart';
 
 class ProductoTile extends ConsumerStatefulWidget {
   final ProductoCotizado producto;
@@ -44,7 +46,7 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
                 ),
                 SlidableAction(
                   onPressed: (context) async {
-                    //TODO: Eliminar producto
+                    widget.onRemove();
                   },
                   backgroundColor: Colors.red,
                   icon: Icons.delete,
@@ -62,7 +64,9 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.add_shopping_cart),
-                    onPressed: () => _mostrarDialogoExtras(),
+                    onPressed: () {
+                      _mostrarDialogoExtras();
+                    } 
                   ),
                   IconButton(
                     icon: const Icon(Icons.remove),
@@ -116,7 +120,9 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
           if (widget.producto.extras.isNotEmpty) ...[
             const Text('Extras:', style: TextStyle(fontWeight: FontWeight.bold)),
             ...widget.producto.extras.map((extra) => 
-              Text('- ${extra.nombre}: \$${extra.monto} (${extra.unidad})'),
+              extra.unidad == UnidadExtra.cm_cuadrado 
+              ? Text('- ${extra.nombre}: (${extra.anchoCm}cm x ${extra.largoCm}cm)')
+              : Text('- ${extra.nombre}: \$${extra.monto}'),
             ),
           ],
           if (widget.producto.descuento != null)
@@ -135,42 +141,41 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
   }
 
   void _mostrarDialogoExtras() async {
-  final CalculadorCostos calculador = CalculadorCostos(ref);
-  final productoOriginal = ref.read(productosProvider.notifier) //TODO Agregar el ref de producto y de variante
-    .obtenerProductoPorId(widget.producto.productoRef);
-  
-  // Obtener extras disponibles para esta subcategoría
-  final extrasDisponibles = await ref.watch(extrasProvider).extras;
+    final CalculadorCostos calculador = CalculadorCostos(ref);
+    final productoOriginal = ref.read(productosProvider.notifier)
+      .obtenerProductoPorId(widget.producto.productoRef);
+    
+    // Obtener extras disponibles para esta subcategoría
+    final extrasDisponibles = await ref.watch(extrasProvider).extras;
 
-  final extrasActualizados = await showDialog<List<Extra>>(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setStateDialog) {
-          return DialogoExtras(
-            producto: widget.producto,
-            extrasDisponibles: extrasDisponibles,
-            calculador: calculador,
-            subcategoriaId: productoOriginal!.subcategoria,
-            onExtrasUpdated: (nuevosExtras, nuevoPrecio) {
-              widget.onUpdate(widget.producto.copyWith(
-                extras: nuevosExtras,
-                precio: nuevoPrecio,
-              ));
-              // Forzar reconstrucción del diálogo
-              setStateDialog(() {});
-            },
-          );
-        },
-      );
-    },
-  );
+    final nuevosExtras = await showDialog<List<Extra>>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return DialogoExtras(
+              producto: widget.producto,
+              extrasDisponibles: extrasDisponibles,
+              calculador: calculador,
+              subcategoriaId: productoOriginal!.subcategoria,
+              onExtrasUpdated: (nuevosExtras, nuevoPrecio) {
+                widget.onUpdate(widget.producto.copyWith(
+                  extras: nuevosExtras,
+                  precio: nuevoPrecio,
+                ));
+              },
+            );
+          },
+        );
+      },
+    );
 
-  // Si se actualizaron extras, forzar reconstrucción del padre
-  if (extrasActualizados != null) {
-    setState(() {});
+    widget.onUpdate(widget.producto.copyWith(
+        extras: nuevosExtras,
+        precio: widget.producto.precio,
+        precioFinal: widget.producto.precio * widget.producto.cantidad,
+      ));
   }
-}
 
   void _mostrarDialogoDescuento() {
     String razon = widget.producto.descuento?.razon ?? '';
@@ -257,7 +262,7 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
   }
 }
 
-class DialogoExtras extends StatefulWidget {
+class DialogoExtras extends ConsumerStatefulWidget {
   final ProductoCotizado producto;
   final List<Extra> extrasDisponibles;
   final CalculadorCostos calculador;
@@ -276,7 +281,7 @@ class DialogoExtras extends StatefulWidget {
   _DialogoExtrasState createState() => _DialogoExtrasState();
 }
 
-class _DialogoExtrasState extends State<DialogoExtras> {
+class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
   late List<Extra> _extrasActuales;
 
   @override
@@ -285,12 +290,25 @@ class _DialogoExtrasState extends State<DialogoExtras> {
     _extrasActuales = List.from(widget.producto.extras);
   }
 
+  Future<void> _agregarExtraTemporal() async {
+    final parametrosDisponibles = ref.read(costosElaboracionProvider).costos;
+    
+    final extraTemporal = await showDialog<Extra>(
+      context: context,
+      builder: (context) => _DialogoExtraTemporal(parametrosDisponibles),
+    );
+
+    if (extraTemporal != null) {
+      await _agregarExtra(extraTemporal);
+    }
+  }
+
   Future<void> _agregarExtra(Extra extra) async {
     final nuevosExtras = List.of(_extrasActuales)..add(extra);
     final precioNeto = await widget.calculador.calcularPrecioFinal(
       subcategoriaId: widget.subcategoriaId,
       extras: nuevosExtras,
-      precioBase: widget.producto.precio,
+      precioBase: widget.producto.precioBase,
     );
     
     setState(() {
@@ -305,7 +323,7 @@ class _DialogoExtrasState extends State<DialogoExtras> {
     final precioNeto = await widget.calculador.calcularPrecioFinal(
       subcategoriaId: widget.subcategoriaId,
       extras: nuevosExtras,
-      precioBase: widget.producto.precio,
+      precioBase: widget.producto.precioBase,
     );
     
     setState(() {
@@ -332,7 +350,9 @@ class _DialogoExtrasState extends State<DialogoExtras> {
                 spacing: 8,
                 children: _extrasActuales.map((extra) {
                   return Chip(
-                    label: Text('${extra.nombre} (\$${extra.monto})'),
+                    label: extra.unidad == UnidadExtra.cm_cuadrado 
+                      ? Text('${ extra.nombre } (${ extra.anchoCm } x ${ extra.largoCm })')
+                      : Text('${ extra.nombre } (\$${ extra.monto })'),
                     deleteIcon: const Icon(Icons.close, size: 18),
                     onDeleted: () => _eliminarExtra(extra),
                   );
@@ -340,6 +360,16 @@ class _DialogoExtrasState extends State<DialogoExtras> {
               ),
               const Divider(),
             ],
+
+            // Botón para agregar extra temporal
+            OutlinedButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Tamaño manual'),
+              onPressed: _agregarExtraTemporal,
+            ),
+            const SizedBox(height: 8),
+            const Divider(),
+            const SizedBox(height: 8),
             
             // Lista de extras disponibles
             const Text('Agregar extras:', 
@@ -372,6 +402,112 @@ class _DialogoExtrasState extends State<DialogoExtras> {
         TextButton(
           onPressed: () => Navigator.pop(context, _extrasActuales),
           child: const Text('Cerrar'),
+        ),
+      ],
+    );
+  }
+}
+
+class _DialogoExtraTemporal extends StatefulWidget {
+  final List<ParametroCostoElaboracion> parametrosDisponibles;
+
+  const _DialogoExtraTemporal(this.parametrosDisponibles);
+
+  @override
+  __DialogoExtraTemporalState createState() => __DialogoExtraTemporalState();
+}
+
+class __DialogoExtraTemporalState extends State<_DialogoExtraTemporal> {
+  final _formKey = GlobalKey<FormState>();
+  late String _nombre = 'Personalizado';
+  late double _anchoCm = 0;
+  late double _largoCm = 0;
+  String? _parametroCalculoId;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Extra temporal'),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                initialValue: _nombre,
+                decoration: const InputDecoration(labelText: 'Nombre*'),
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Este campo es requerido' : null,
+                onChanged: (value) => _nombre = value,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      decoration: const InputDecoration(labelText: 'Ancho (cm)*'),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) return 'Requerido';
+                        if (double.tryParse(value!) == null) return 'Número inválido';
+                        return null;
+                      },
+                      onChanged: (value) => _anchoCm = double.parse(value),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextFormField(
+                      decoration: const InputDecoration(labelText: 'Largo (cm)*'),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) return 'Requerido';
+                        if (double.tryParse(value!) == null) return 'Número inválido';
+                        return null;
+                      },
+                      onChanged: (value) => _largoCm = double.parse(value),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _parametroCalculoId,
+                decoration: const InputDecoration(labelText: 'Parámetro de cálculo*'),
+                items: widget.parametrosDisponibles.map((parametro) {
+                  return DropdownMenuItem(
+                    value: parametro.id,
+                    child: Text(parametro.nombre),
+                  );
+                }).toList(),
+                validator: (value) => value == null ? 'Seleccione un parámetro' : null,
+                onChanged: (value) => _parametroCalculoId = value,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        TextButton(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              final extra = Extra(
+                id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+                nombre: _nombre,
+                unidad: UnidadExtra.cm_cuadrado,
+                anchoCm: _anchoCm,
+                largoCm: _largoCm,
+                parametroCalculoId: _parametroCalculoId,
+              );
+              Navigator.pop(context, extra);
+            }
+          },
+          child: const Text('Agregar'),
         ),
       ],
     );
