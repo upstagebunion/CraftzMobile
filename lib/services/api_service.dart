@@ -329,4 +329,42 @@ class ApiService {
     }
   }
 
+  Future<void> eliminarExtra(String extraId) async {
+    String? token = await getToken();
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/extras/$extraId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      }
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'];
+      throw 'Error al agregar talla: ${mensaje}';
+    }
+  }
+
+  Future<void> eliminarCostosElaboracion(String parametroId) async {
+    String? token = await getToken();
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/parametrosCostos/$parametroId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      }
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'];
+      throw 'Error al agregar talla: ${mensaje}';
+    }
+  }
+
 }

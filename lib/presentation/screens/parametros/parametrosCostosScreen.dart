@@ -6,21 +6,31 @@ import 'package:craftz_app/providers/categories_provider.dart';
 import 'package:craftz_app/data/repositories/extras_repositorie.dart';
 import 'package:craftz_app/data/repositories/categorias_repositorie.dart';
 
-class CostosElaboracionScreen extends ConsumerWidget {
-  const CostosElaboracionScreen({super.key});
+class CostosElaboracionScreen extends ConsumerStatefulWidget {
+  @override
+  _CostosElaboracionScreenState createState() => _CostosElaboracionScreenState();
+}
+
+class _CostosElaboracionScreenState extends ConsumerState<CostosElaboracionScreen>{
+  @override
+  void initState() {
+    super.initState();
+    // Llamamos al provider para cargar productos cuando se inicializa
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(costosElaboracionProvider.notifier).cargarCostosElaboracion();
+      ref.read(categoriesProvider.notifier).cargarCategorias();
+    });
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final costosState = ref.watch(costosElaboracionProvider);
     final categoriasState = ref.watch(categoriesProvider);
     final isLoading = ref.watch(isLoadingCostosElaboracion) || ref.watch(isLoadingCategories);
     late final costos;
     late final List<Categoria> categorias;
 
-    if (isLoading) {
-      ref.read(categoriesProvider.notifier).cargarCategorias();
-      ref.read(costosElaboracionProvider.notifier).cargarCostosElaboracion();
-    } else {
+    if (!isLoading) {
       costos = costosState.costos;
       categorias = categoriasState.categorias;
     }
@@ -137,7 +147,7 @@ class CostosElaboracionScreen extends ConsumerWidget {
 
     if (confirmed == true) {
       try {
-        //await ref.read(costosElaboracionProvider.notifier).eliminarCosto(id);
+        await ref.read(costosElaboracionProvider.notifier).eliminarCostosElaboracion(id);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Parámetro eliminado correctamente')),
         );

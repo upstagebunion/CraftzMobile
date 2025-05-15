@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/repositories/cotizacion_repositories.dart';
 import '../../../providers/cotizaciones_provider.dart';
+import 'package:craftz_app/core/utils/calculadorCosto.dart';
 
 class DetallesProductoBottomSheet extends ConsumerStatefulWidget {
   final Producto producto;
@@ -85,7 +86,8 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
     return true;
   }
 
-  void _agregarProducto(WidgetRef ref) {
+  Future<void> _agregarProducto(WidgetRef ref) async {
+    final CalculadorCostos calculador = CalculadorCostos(ref);
     // Obtener la subcategoría nuevamente para asegurarnos de tener los datos más recientes
     final subcategoria = ref.read(categoriesProvider.notifier).getSubcategoria(widget.producto);
     final usaTallas = subcategoria?.usaTallas ?? false;
@@ -99,7 +101,9 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
       precioBase = colorSeleccionado!.costo ?? 0;
     }
 
-    final precioDTFPorM2 = 0.05;
+    final precioNeto = await calculador.calcularPrecioFinal(subcategoriaId: widget.producto.subcategoria, extras: [], precioBase: precioBase);
+
+    /*final precioDTFPorM2 = 0.05;
     final anchoEstandar = 30;
     final largoEstandar = 45;
     final precioDtf = (anchoEstandar * largoEstandar) * precioDTFPorM2;
@@ -108,7 +112,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
     final iva = 1.16;
 
     precioBase = (precioBase + precioDtf + constanteCostos) * factorManoObra;
-    final precioNeto = precioBase * iva; 
+    final precioNeto = precioBase * iva; */
 
     final productoCotizado = ProductoCotizado(
       productoRef: widget.producto.id,
@@ -136,6 +140,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
           : null,
       extras: extrasSeleccionados,
       cantidad: cantidad,
+      precioBase: precioBase,
       precio: precioNeto,
       precioFinal: precioNeto * cantidad,
     );

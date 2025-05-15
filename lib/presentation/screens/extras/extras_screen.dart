@@ -4,18 +4,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:craftz_app/providers/extras_provider.dart';
 import 'package:craftz_app/data/repositories/extras_repositorie.dart';
 
-class ExtrasScreen extends ConsumerWidget {
-  const ExtrasScreen({super.key});
+class ExtrasScreen extends ConsumerStatefulWidget {
+  @override
+  _ExtrasScreenState createState() => _ExtrasScreenState();
+}
+
+class _ExtrasScreenState extends ConsumerState<ExtrasScreen>{
+  @override
+  void initState() {
+    super.initState();
+    // Llamamos al provider para cargar productos cuando se inicializa
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(costosElaboracionProvider.notifier).cargarCostosElaboracion();
+      ref.read(extrasProvider.notifier).cargarExtras();
+    });
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final extrasState = ref.watch(extrasProvider);
     final isLoading = ref.watch(isLoadingExtras);
     late final List<Extra> extras;
 
-    if (isLoading) {
-      ref.read(extrasProvider.notifier).cargarExtras();
-    } else {
+    if (!isLoading) {
       extras = extrasState.extras;
     }
 
@@ -97,7 +108,7 @@ class ExtrasScreen extends ConsumerWidget {
 
     if (confirmed == true) {
       try {
-        //await ref.read(extrasProvider.notifier).eliminarExtra(id);
+        await ref.read(extrasProvider.notifier).eliminarExtra(id);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Extra eliminado correctamente')),
         );

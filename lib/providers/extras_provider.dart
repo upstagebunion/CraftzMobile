@@ -55,4 +55,13 @@ class ExtrasNotifier extends StateNotifier<CatalogoExtras> {
       ref.read(isSavingExtras.notifier).state = false;
     }
   }
+
+  Future<void> eliminarExtra(String extraId) async {
+    try {
+      await apiService.eliminarExtra(extraId);
+      state = CatalogoExtras(extras: state.extras.where((extra) => extra.id != extraId).toList());
+    } catch (e) {
+      throw Exception('Error al eliminar el extra: $e');
+    }
+  }
 }

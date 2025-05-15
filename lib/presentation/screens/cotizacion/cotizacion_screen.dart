@@ -8,26 +8,42 @@ import 'package:craftz_app/data/repositories/categorias_repositorie.dart';
 import 'package:craftz_app/providers/cotizaciones_provider.dart';
 import 'package:craftz_app/providers/categories_provider.dart' as proveedorCategorias;
 import 'package:craftz_app/providers/product_notifier.dart';
+import 'package:craftz_app/providers/extras_provider.dart';
+import 'package:craftz_app/providers/parametros_costos_provider.dart';
 
 import './cotizacion_resumen.dart';
 import './cotizacion_selector_productos.dart';
 import './cotizacion_tile_producto.dart';
 
-class CotizacionScreen extends ConsumerWidget {
-  const CotizacionScreen({super.key});
+class CotizacionScreen extends ConsumerStatefulWidget {
+  @override
+  _CotizacionScreenState createState() => _CotizacionScreenState();
+}
+
+class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isLoading = ref.watch(isLoadingProvider) || ref.watch(proveedorCategorias.isLoadingCategories);
+  void initState() {
+    super.initState();
+    // Llamamos al provider para cargar productos cuando se inicializa
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(proveedorCategorias.categoriesProvider.notifier).cargarCategorias();
+      ref.read(productosProvider.notifier).cargarProductos();
+      ref.read(extrasProvider.notifier).cargarExtras();
+      ref.read(costosElaboracionProvider.notifier).cargarCostosElaboracion();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLoading = ref.watch(isLoadingProvider) || ref.watch(proveedorCategorias.isLoadingCategories)
+                      || ref.watch(isLoadingCostosElaboracion) || ref.watch(isLoadingExtras);
     late final productos;
     late final categorias;
-    if (isLoading) {
-      ref.read(productosProvider.notifier).cargarProductos();
-      ref.read(proveedorCategorias.categoriesProvider.notifier).cargarCategorias();
-    } else {
+    if (!isLoading) {
       productos = ref.watch(productosProvider).productos;
       categorias = ref.watch(proveedorCategorias.categoriesProvider).categorias;
-    }
+    } 
     
     return Scaffold(
       appBar: AppBar(

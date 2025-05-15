@@ -62,4 +62,13 @@ class CostosElaboracionNotifier extends StateNotifier<CatalogoCostosElaboracion>
       c.tipoAplicacion == TipoAplicacion.variable
     ).toList();
   }
+
+  Future<void> eliminarCostosElaboracion(String costoId) async {
+    try {
+      await apiService.eliminarCostosElaboracion(costoId);
+      state = CatalogoCostosElaboracion(costos: state.costos.where((costo) => costo.id != costoId).toList());
+    } catch (e) {
+      throw Exception('Error al eliminar el parametro de costo de elaboracion: $e');
+    }
+  }
 }

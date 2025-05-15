@@ -31,6 +31,14 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
+  Producto? obtenerProductoPorId(String id) {
+    try { 
+      return state.productos.firstWhere((producto) => producto.id == id);
+    } catch (error) {
+      return null;
+    }
+}
+
   Future<void> agregarProducto(Map<String, dynamic> producto) async {
     try {
       final response = await apiService.agregarProducto(producto);

@@ -10,6 +10,7 @@ class ProductoCotizado {
   final List<Extra> extras;
   final int cantidad;
   final Descuento? descuento;
+  final double precioBase;
   final double precio;
   final double precioFinal;
 
@@ -22,6 +23,7 @@ class ProductoCotizado {
     this.extras = const [],
     this.cantidad = 1,
     this.descuento,
+    required this.precioBase,
     required this.precio,
     required this.precioFinal,
   });
@@ -35,6 +37,7 @@ class ProductoCotizado {
     List<Extra>? extras,
     int? cantidad,
     Descuento? descuento,
+    double? precioBase,
     double? precio,
     double? precioFinal,
   }) {
@@ -47,6 +50,7 @@ class ProductoCotizado {
       extras: extras ?? this.extras,
       cantidad: cantidad ?? this.cantidad,
       descuento: descuento ?? this.descuento,
+      precioBase: precioBase ?? this.precioBase,
       precio: precio ?? this.precio,
       precioFinal: precioFinal ?? this.precioFinal,
     );
@@ -62,6 +66,7 @@ class ProductoCotizado {
       'extras': extras.map((e) => e.toJson()).toList(),
       'cantidad': cantidad,
       'descuento': descuento?.toJson(),
+      'precioBase': precioBase,
       'precio': precio,
       'precioFinal': precioFinal,
     };

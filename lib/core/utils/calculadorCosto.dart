@@ -5,15 +5,14 @@ import 'package:craftz_app/providers/extras_provider.dart';
 import 'package:craftz_app/data/repositories/extras_repositorie.dart';
 
 class CalculadorCostos {
-  final Ref ref;
+  final WidgetRef ref;
 
   CalculadorCostos(this.ref);
 
   // Calcula el precio final de un producto con sus extras
   Future<double> calcularPrecioFinal({
-    required String productoId,
     required String subcategoriaId,
-    required List<String> extrasIds,
+    required List<Extra> extras,
     required double precioBase,
   }) async {
     // 1. Obtener los parámetros fijos que aplican a esta subcategoría
@@ -29,7 +28,6 @@ class CalculadorCostos {
     }
     
     // 4. Aplicar extras
-    final extras = await _obtenerExtras(extrasIds);
     for (final extra in extras) {
       if (extra.unidad == UnidadExtra.pieza) {
         precioCalculado += extra.calcularMonto(null);
@@ -46,13 +44,8 @@ class CalculadorCostos {
     final costos = ref.read(costosElaboracionProvider).costos;
     return costos.where((c) => 
       c.tipoAplicacion == TipoAplicacion.fijo && 
-      c.subcategoriasAplica.contains(subcategoriaId)
+      c.subcategoriasAplica.any((subcat) => subcat.contains(subcategoriaId))
     ).toList();
-  }
-
-  Future<List<Extra>> _obtenerExtras(List<String> extrasIds) async {
-    final extras = ref.read(extrasProvider).extras;
-    return extras.where((e) => extrasIds.contains(e.id)).toList();
   }
 
   Future<ParametroCostoElaboracion?> _obtenerParametroCalculo(String? parametroId) async {
@@ -65,8 +58,3 @@ class CalculadorCostos {
     }
   }
 }
-
-// Provider para el calculador de costos
-final calculadorCostosProvider = Provider<CalculadorCostos>((ref) {
-  return CalculadorCostos(ref);
-});
