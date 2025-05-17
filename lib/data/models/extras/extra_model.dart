@@ -1,4 +1,6 @@
 import './parametro_costo_model.dart';
+import 'package:craftz_app/providers/parametros_costos_provider.dart';
+
 enum UnidadExtra { pieza, cm_cuadrado }
 
 class Extra {
@@ -60,6 +62,17 @@ class Extra {
       final costoPorCmCuadrado = parametro.costoPorUnidad();
       
       return areaExtra * costoPorCmCuadrado;
+    }
+  }
+
+  double calcularMontoWithOwnParameter(ref){
+    final List<ParametroCostoElaboracion> costos = ref.read(costosElaboracionProvider).costos;
+    try {
+      final ParametroCostoElaboracion parametro = costos.firstWhere((c) => c.id == parametroCalculoId);
+      final areaExtra = anchoCm! * largoCm!;
+      return areaExtra * parametro.costoPorUnidad();
+    } catch (error) {
+      return 0;
     }
   }
 

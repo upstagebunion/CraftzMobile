@@ -1,3 +1,5 @@
+import 'package:craftz_app/data/models/cotizacion/extra_cotizado_model.dart';
+import 'package:craftz_app/providers/extras_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:craftz_app/providers/parametros_costos_provider.dart';
@@ -11,7 +13,7 @@ class CalculadorCostos {
   // Calcula el precio final de un producto con sus extras
   Future<double> calcularPrecioFinal({
     required String subcategoriaId,
-    required List<Extra> extras,
+    required List<ExtraCotizado> extras,
     required double precioBase,
   }) async {
     
@@ -26,8 +28,23 @@ class CalculadorCostos {
     // 4. Aplicar extras de cm cuadrdado
     for (final extra in extras) {
       if (extra.unidad == UnidadExtra.cm_cuadrado) {
-        final parametro = await _obtenerParametroCalculo(extra.parametroCalculoId);
-        precioCalculado += extra.calcularMonto(parametro);
+        if (extra.esTemporal){
+          if (extra.parametroCalculo!.id != null) {
+            final parametro = await _obtenerParametroCalculo(extra.parametroCalculo!.id!);
+            if (parametro != null) {
+              precioCalculado += extra.calcularMonto(parametro);
+            }
+          } else {
+            final areaExtra = extra.largoCm! * extra.anchoCm!;
+            precioCalculado += areaExtra * extra.parametroCalculo!.valor;
+          }
+        } else {
+          final extraOriginal = ref.read(extrasProvider.notifier).getExtraById(extra.extraRef!);
+          if (extraOriginal != null) { 
+            final parametro = await _obtenerParametroCalculo(extraOriginal.parametroCalculoId);
+            precioCalculado += extraOriginal.calcularMonto(parametro);
+          }
+        }
       }
     }
 

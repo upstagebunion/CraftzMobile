@@ -39,45 +39,47 @@ class _CostosElaboracionScreenState extends ConsumerState<CostosElaboracionScree
       appBar: AppBar(
         title: const Text('Parámetros de Costo'),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : costos.isEmpty
-              ? const Center(child: Text('No hay parámetros registrados'))
-              : ListView.builder(
-                  itemCount: costos.length,
-                  itemBuilder: (context, index) {
-                    final costo = costos[index];
-                    return ListTile(
-                      title: Text(costo.nombre),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Tipo: ${_getUnidadText(costo)}'),
-                          if (costo.descripcion != null) Text(costo.descripcion!),
-                          if (costo.unidad == UnidadCosto.cm_cuadrado)
-                            Text('Plancha: ${costo.anchoPlancha}cm x ${costo.largoPlancha}cm'),
-                          Text('Aplicación: ${costo.tipoAplicacion == TipoAplicacion.fijo ? 'Fijo' : 'Variable'}'),
-                          if (costo.tipoAplicacion == TipoAplicacion.fijo)
-                            Text('Prioridad: ${costo.prioridad}'),
-                          _buildSubcategoriasInfo(costo, categorias),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _showCostoForm(context, ref, costo),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _deleteCosto(context, ref, costo.id),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+      body: SafeArea(
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : costos.isEmpty
+                ? const Center(child: Text('No hay parámetros registrados'))
+                : ListView.builder(
+                    itemCount: costos.length,
+                    itemBuilder: (context, index) {
+                      final costo = costos[index];
+                      return ListTile(
+                        title: Text(costo.nombre),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Tipo: ${_getUnidadText(costo)}'),
+                            if (costo.descripcion != null) Text(costo.descripcion!),
+                            if (costo.unidad == UnidadCosto.cm_cuadrado)
+                              Text('Plancha: ${costo.anchoPlancha}cm x ${costo.largoPlancha}cm'),
+                            Text('Aplicación: ${costo.tipoAplicacion == TipoAplicacion.fijo ? 'Fijo' : 'Variable'}'),
+                            if (costo.tipoAplicacion == TipoAplicacion.fijo)
+                              Text('Prioridad: ${costo.prioridad}'),
+                            _buildSubcategoriasInfo(costo, categorias),
+                          ],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _showCostoForm(context, ref, costo),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _deleteCosto(context, ref, costo.id),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showCostoForm(context, ref, null),
         child: const Icon(Icons.add),
@@ -201,248 +203,250 @@ class _ParametroCostoElaboracionFormState extends ConsumerState<ParametroCostoEl
     final isSaving = ref.watch(isSavingCostosElaboracion);
     final categoriasState = ref.watch(categoriesProvider);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.costo == null ? 'Nuevo Parámetro' : 'Editar Parámetro',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _nombre,
-                decoration: const InputDecoration(labelText: 'Nombre*'),
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Este campo es requerido' : null,
-                onSaved: (value) => _nombre = value!,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _descripcion,
-                decoration: const InputDecoration(labelText: 'Descripción'),
-                onSaved: (value) => _descripcion = value,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<UnidadCosto>(
-                value: _unidad,
-                items: UnidadCosto.values.map((unidad) {
-                  return DropdownMenuItem(
-                    value: unidad,
-                    child: Text(
-                      unidad == UnidadCosto.pieza ? 'Por pieza' : 
-                      unidad == UnidadCosto.cm_cuadrado ? 'Por cm²' : 'Porcentaje',
-                    ),
-                  );
-                }).toList(),
-                decoration: const InputDecoration(labelText: 'Unidad*'),
-                onChanged: (value) {
-                  setState(() {
-                    _unidad = value!;
-                    // Resetear valores si cambia de cm_cuadrado a otro tipo
-                    if (_unidad != UnidadCosto.cm_cuadrado) {
-                      _anchoPlancha = null;
-                      _largoPlancha = null;
-                    }
-                    // Validar porcentaje
-                    if (_unidad == UnidadCosto.porcentaje && _monto > 1) {
-                      _monto = _monto / 100;
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _unidad == UnidadCosto.porcentaje 
-                    ? (_monto * 100).toString()
-                    : _monto.toString(),
-                decoration: InputDecoration(
-                  labelText: _unidad == UnidadCosto.porcentaje 
-                      ? 'Porcentaje* (0-100)' 
-                      : 'Costo*',
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.costo == null ? 'Nuevo Parámetro' : 'Editar Parámetro',
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value?.isEmpty ?? true) return 'Este campo es requerido';
-                  final numValue = double.tryParse(value!);
-                  if (numValue == null) return 'Ingrese un número válido';
-                  if (_unidad == UnidadCosto.porcentaje && (numValue < 0 || numValue > 100)) {
-                    return 'Ingrese un porcentaje entre 0 y 100';
-                  }
-                  if (numValue <= 0) return 'El valor debe ser mayor a 0';
-                  return null;
-                },
-                onSaved: (value) {
-                  final numValue = double.parse(value!);
-                  _monto = _unidad == UnidadCosto.porcentaje 
-                      ? numValue / 100 
-                      : numValue;
-                },
-              ),
-              // Campos para cm²
-              if (_unidad == UnidadCosto.cm_cuadrado) ...[
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: _anchoPlancha?.toString(),
-                        decoration: const InputDecoration(labelText: 'Ancho plancha (cm)*'),
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (_unidad == UnidadCosto.cm_cuadrado && 
-                              (value?.isEmpty ?? true)) {
-                            return 'Este campo es requerido';
-                          }
-                          if (value?.isNotEmpty ?? false) {
-                            if (double.tryParse(value!) == null) {
-                              return 'Ingrese un número válido';
-                            }
-                          }
-                          return null;
-                        },
-                        onSaved: (value) => _anchoPlancha = double.parse(value!),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: _largoPlancha?.toString(),
-                        decoration: const InputDecoration(labelText: 'Largo plancha (cm)*'),
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (_unidad == UnidadCosto.cm_cuadrado && 
-                              (value?.isEmpty ?? true)) {
-                            return 'Este campo es requerido';
-                          }
-                          if (value?.isNotEmpty ?? false) {
-                            if (double.tryParse(value!) == null) {
-                              return 'Ingrese un número válido';
-                            }
-                          }
-                          return null;
-                        },
-                        onSaved: (value) => _largoPlancha = double.parse(value!),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: 16),
-              DropdownButtonFormField<TipoAplicacion>(
-                value: _tipoAplicacion,
-                items: TipoAplicacion.values.map((tipo) {
-                  return DropdownMenuItem(
-                    value: tipo,
-                    child: Text(tipo == TipoAplicacion.fijo ? 'Fijo' : 'Variable'),
-                  );
-                }).toList(),
-                decoration: const InputDecoration(labelText: 'Tipo de aplicación*'),
-                onChanged: (value) {
-                  setState(() {
-                    _tipoAplicacion = value!;
-                  });
-                },
-              ),
-              // Prioridad solo para costos fijos
-              if (_tipoAplicacion == TipoAplicacion.fijo) ...[
                 const SizedBox(height: 16),
                 TextFormField(
-                  initialValue: _prioridad.toString(),
-                  decoration: const InputDecoration(
-                    labelText: 'Prioridad*',
-                    hintText: '0 para aplicar primero, mayor número = después',
+                  initialValue: _nombre,
+                  decoration: const InputDecoration(labelText: 'Nombre*'),
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Este campo es requerido' : null,
+                  onSaved: (value) => _nombre = value!,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  initialValue: _descripcion,
+                  decoration: const InputDecoration(labelText: 'Descripción'),
+                  onSaved: (value) => _descripcion = value,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<UnidadCosto>(
+                  value: _unidad,
+                  items: UnidadCosto.values.map((unidad) {
+                    return DropdownMenuItem(
+                      value: unidad,
+                      child: Text(
+                        unidad == UnidadCosto.pieza ? 'Por pieza' : 
+                        unidad == UnidadCosto.cm_cuadrado ? 'Por cm²' : 'Porcentaje',
+                      ),
+                    );
+                  }).toList(),
+                  decoration: const InputDecoration(labelText: 'Unidad*'),
+                  onChanged: (value) {
+                    setState(() {
+                      _unidad = value!;
+                      // Resetear valores si cambia de cm_cuadrado a otro tipo
+                      if (_unidad != UnidadCosto.cm_cuadrado) {
+                        _anchoPlancha = null;
+                        _largoPlancha = null;
+                      }
+                      // Validar porcentaje
+                      if (_unidad == UnidadCosto.porcentaje && _monto > 1) {
+                        _monto = _monto / 100;
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  initialValue: _unidad == UnidadCosto.porcentaje 
+                      ? (_monto * 100).toString()
+                      : _monto.toString(),
+                  decoration: InputDecoration(
+                    labelText: _unidad == UnidadCosto.porcentaje 
+                        ? 'Porcentaje* (0-100)' 
+                        : 'Costo*',
                   ),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value?.isEmpty ?? true) return 'Este campo es requerido';
-                    if (int.tryParse(value!) == null) return 'Ingrese un número válido';
+                    final numValue = double.tryParse(value!);
+                    if (numValue == null) return 'Ingrese un número válido';
+                    if (_unidad == UnidadCosto.porcentaje && (numValue < 0 || numValue > 100)) {
+                      return 'Ingrese un porcentaje entre 0 y 100';
+                    }
+                    if (numValue <= 0) return 'El valor debe ser mayor a 0';
                     return null;
                   },
-                  onSaved: (value) => _prioridad = int.parse(value!),
+                  onSaved: (value) {
+                    final numValue = double.parse(value!);
+                    _monto = _unidad == UnidadCosto.porcentaje 
+                        ? numValue / 100 
+                        : numValue;
+                  },
+                ),
+                // Campos para cm²
+                if (_unidad == UnidadCosto.cm_cuadrado) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: _anchoPlancha?.toString(),
+                          decoration: const InputDecoration(labelText: 'Ancho plancha (cm)*'),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (_unidad == UnidadCosto.cm_cuadrado && 
+                                (value?.isEmpty ?? true)) {
+                              return 'Este campo es requerido';
+                            }
+                            if (value?.isNotEmpty ?? false) {
+                              if (double.tryParse(value!) == null) {
+                                return 'Ingrese un número válido';
+                              }
+                            }
+                            return null;
+                          },
+                          onSaved: (value) => _anchoPlancha = double.parse(value!),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: _largoPlancha?.toString(),
+                          decoration: const InputDecoration(labelText: 'Largo plancha (cm)*'),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (_unidad == UnidadCosto.cm_cuadrado && 
+                                (value?.isEmpty ?? true)) {
+                              return 'Este campo es requerido';
+                            }
+                            if (value?.isNotEmpty ?? false) {
+                              if (double.tryParse(value!) == null) {
+                                return 'Ingrese un número válido';
+                              }
+                            }
+                            return null;
+                          },
+                          onSaved: (value) => _largoPlancha = double.parse(value!),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 16),
+                DropdownButtonFormField<TipoAplicacion>(
+                  value: _tipoAplicacion,
+                  items: TipoAplicacion.values.map((tipo) {
+                    return DropdownMenuItem(
+                      value: tipo,
+                      child: Text(tipo == TipoAplicacion.fijo ? 'Fijo' : 'Variable'),
+                    );
+                  }).toList(),
+                  decoration: const InputDecoration(labelText: 'Tipo de aplicación*'),
+                  onChanged: (value) {
+                    setState(() {
+                      _tipoAplicacion = value!;
+                    });
+                  },
+                ),
+                // Prioridad solo para costos fijos
+                if (_tipoAplicacion == TipoAplicacion.fijo) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    initialValue: _prioridad.toString(),
+                    decoration: const InputDecoration(
+                      labelText: 'Prioridad*',
+                      hintText: '0 para aplicar primero, mayor número = después',
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) return 'Este campo es requerido';
+                      if (int.tryParse(value!) == null) return 'Ingrese un número válido';
+                      return null;
+                    },
+                    onSaved: (value) => _prioridad = int.parse(value!),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                ExpansionTile(
+                  title: const Text('Subcategorías que aplican'),
+                  children: [
+                    ...categoriasState.categorias.expand((categoria) {
+                      return categoria.subcategorias.map((subcategoria) {
+                        final isSelected = _subcategoriasAplica.contains(subcategoria.id);
+                        return CheckboxListTile(
+                          title: Text('${categoria.nombre} - ${subcategoria.nombre}'),
+                          value: isSelected,
+                          onChanged: (selected) {
+                            setState(() {
+                              if (selected == true) {
+                                _subcategoriasAplica.add(subcategoria.id);
+                              } else {
+                                _subcategoriasAplica.remove(subcategoria.id);
+                              }
+                            });
+                          },
+                        );
+                      });
+                    }).toList(),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            try {
+                              final costo = ParametroCostoElaboracion(
+                                id: widget.costo?.id ?? '',
+                                nombre: _nombre,
+                                descripcion: _descripcion,
+                                unidad: _unidad,
+                                monto: _monto,
+                                anchoPlancha: _unidad == UnidadCosto.cm_cuadrado 
+                                    ? _anchoPlancha 
+                                    : null,
+                                largoPlancha: _unidad == UnidadCosto.cm_cuadrado 
+                                    ? _largoPlancha 
+                                    : null,
+                                tipoAplicacion: _tipoAplicacion,
+                                prioridad: _tipoAplicacion == TipoAplicacion.fijo 
+                                    ? _prioridad 
+                                    : 0,
+                                subcategoriasAplica: _subcategoriasAplica,
+                              );
+      
+                              if (widget.costo == null) {
+                                await ref
+                                    .read(costosElaboracionProvider.notifier)
+                                    .agregarParametroCostoElaboracion(costo);
+                              } else {
+                                /*await ref
+                                    .read(costosElaboracionProvider.notifier)
+                                    .actualizarCostoElaboracion(costo);*/
+                              }
+      
+                              Navigator.pop(context);
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Error: ${e.toString()}')),
+                              );
+                            }
+                          }
+                        },
+                  child: isSaving
+                      ? const CircularProgressIndicator()
+                      : Text(widget.costo == null ? 'Guardar' : 'Actualizar'),
                 ),
               ],
-              const SizedBox(height: 16),
-              ExpansionTile(
-                title: const Text('Subcategorías que aplican'),
-                children: [
-                  ...categoriasState.categorias.expand((categoria) {
-                    return categoria.subcategorias.map((subcategoria) {
-                      final isSelected = _subcategoriasAplica.contains(subcategoria.id);
-                      return CheckboxListTile(
-                        title: Text('${categoria.nombre} - ${subcategoria.nombre}'),
-                        value: isSelected,
-                        onChanged: (selected) {
-                          setState(() {
-                            if (selected == true) {
-                              _subcategoriasAplica.add(subcategoria.id);
-                            } else {
-                              _subcategoriasAplica.remove(subcategoria.id);
-                            }
-                          });
-                        },
-                      );
-                    });
-                  }).toList(),
-                ],
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: isSaving
-                    ? null
-                    : () async {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          try {
-                            final costo = ParametroCostoElaboracion(
-                              id: widget.costo?.id ?? '',
-                              nombre: _nombre,
-                              descripcion: _descripcion,
-                              unidad: _unidad,
-                              monto: _monto,
-                              anchoPlancha: _unidad == UnidadCosto.cm_cuadrado 
-                                  ? _anchoPlancha 
-                                  : null,
-                              largoPlancha: _unidad == UnidadCosto.cm_cuadrado 
-                                  ? _largoPlancha 
-                                  : null,
-                              tipoAplicacion: _tipoAplicacion,
-                              prioridad: _tipoAplicacion == TipoAplicacion.fijo 
-                                  ? _prioridad 
-                                  : 0,
-                              subcategoriasAplica: _subcategoriasAplica,
-                            );
-
-                            if (widget.costo == null) {
-                              await ref
-                                  .read(costosElaboracionProvider.notifier)
-                                  .agregarParametroCostoElaboracion(costo);
-                            } else {
-                              /*await ref
-                                  .read(costosElaboracionProvider.notifier)
-                                  .actualizarCostoElaboracion(costo);*/
-                            }
-
-                            Navigator.pop(context);
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: ${e.toString()}')),
-                            );
-                          }
-                        }
-                      },
-                child: isSaving
-                    ? const CircularProgressIndicator()
-                    : Text(widget.costo == null ? 'Guardar' : 'Actualizar'),
-              ),
-            ],
+            ),
           ),
         ),
       ),

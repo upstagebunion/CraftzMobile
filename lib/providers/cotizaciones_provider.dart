@@ -1,59 +1,146 @@
-import 'package:flutter/material.dart';
-import "package:flutter_riverpod/flutter_riverpod.dart";
+import 'package:craftz_app/services/api_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:craftz_app/data/repositories/cotizacion_repositories.dart';
 
-import '../data/repositories/cotizacion_repositories.dart';
-
-final cotizacionProvider = StateNotifierProvider<CotizacionNotifier, CotizacionState>((ref) {
-  return CotizacionNotifier(ref);
+final cotizacionesProvider = StateNotifierProvider<CotizacionesNotifier, CatalogoCotizaciones>((ref) {
+  return CotizacionesNotifier(ref);
 });
 
-class CotizacionNotifier extends StateNotifier<CotizacionState> {
+class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
   final Ref ref;
-  
-  CotizacionNotifier(this.ref) : super(CotizacionState.empty());
+  final ApiService apiService;
+  CotizacionesNotifier(this.ref)
+    : apiService = ApiService(),
+      super(CatalogoCotizaciones(cotizaciones: []));
 
-  void agregarProducto(ProductoCotizado producto) {
-    state = state.copyWith(
-      productos: [...state.productos, producto],
+  Future<void> cargarCotizaciones() async {
+    try {
+      /*final data = await apiService.obtenerCotizaciones();
+      state = CatalogoCotizaciones(cotizaciones: data);*/
+    } catch (e) {
+      throw Exception('Error al cargar cotizaciones: $e');
+    }
+  }
+
+  Cotizacion? getCotizacionById(String cotizacionId) {
+    try{
+      return state.cotizaciones.firstWhere(
+        (c) => c.id == cotizacionId,
+      );
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Operaciones CRUD para múltiples cotizaciones
+  Future<void> agregarCotizacion(Cotizacion cotizacion) async {
+    try {
+      /*final nuevaCotizacion = await apiService.guardarCotizacion(cotizacion);*/
+      state = CatalogoCotizaciones(
+        cotizaciones: [...state.cotizaciones, cotizacion]
+      );
+    } catch (e) {
+      throw Exception('Error al agregar cotización: $e');
+    }
+  }
+
+  Future<void> actualizarCotizacion(Cotizacion cotizacion) async {
+    try {
+      /*await apiService.actualizarCotizacion(cotizacion);
+      state = CatalogoCotizaciones(
+        cotizaciones: state.cotizaciones.map((c) => 
+          c.id == cotizacion.id ? cotizacion : c
+        ).toList()
+      );*/
+    } catch (e) {
+      throw Exception('Error al actualizar cotización: $e');
+    }
+  }
+
+   Future<void> eliminarCotizacion(String id) async {
+    try {
+      /*await apiService.eliminarCotizacion(id);
+      state = CatalogoCotizaciones(
+        cotizaciones: state.cotizaciones.where((c) => c.id != id).toList()
+      );*/
+    } catch (e) {
+      throw Exception('Error al eliminar cotización: $e');
+    }
+  }
+
+  // Operaciones para la cotización actual (similar al provider anterior)
+  void agregarProductoACotizacion(String cotizacionId, ProductoCotizado producto) {
+    state = CatalogoCotizaciones(
+      cotizaciones: state.cotizaciones.map((cotizacion) {
+        if (cotizacion.id == cotizacionId) {
+          final productosNuevos = [...cotizacion.productos, producto];
+          return cotizacion.copyWith(
+            productos: productosNuevos,
+            subTotal: _calcularSubTotal(productosNuevos),
+            total: _calcularTotal(productosNuevos, cotizacion.descuentoGlobal),
+          );
+        }
+        return cotizacion;
+      }).toList()
     );
   }
 
-  void removerProducto(int index) {
-    final nuevosProductos = List<ProductoCotizado>.from(state.productos);
-    nuevosProductos.removeAt(index);
-    state = state.copyWith(productos: nuevosProductos);
-  }
-
-  void actualizarProducto(int index, ProductoCotizado producto) {
-    final nuevosProductos = List<ProductoCotizado>.from(state.productos);
-    nuevosProductos[index] = producto;
-    state = state.copyWith(productos: nuevosProductos);
-  }
-
-  void aplicarDescuentoGlobal({String? razon, required String tipo, required double valor}) {
-    state = state.copyWith(
-      descuentoGlobal: Descuento(
-        razon: razon,
-        tipo: tipo,
-        valor: valor,
-      ),
+  void removerProductoDeCotizacion(String cotizacionId, int index) {
+    state = CatalogoCotizaciones(
+      cotizaciones: state.cotizaciones.map((cotizacion) {
+        if (cotizacion.id == cotizacionId) {
+          final nuevosProductos = List<ProductoCotizado>.from(cotizacion.productos);
+          nuevosProductos.removeAt(index);
+          return cotizacion.copyWith(
+              productos: nuevosProductos,
+              subTotal: _calcularSubTotal(nuevosProductos),
+              total: _calcularTotal(nuevosProductos, cotizacion.descuentoGlobal),
+            );
+        }
+        return cotizacion;
+      }).toList()
     );
   }
 
-  Future<void> guardarCotizacion() async {
-    // Implementar lógica para enviar al backend
-    final cotizacionData = state.toJson();
-    // await ref.read(apiService).guardarCotizacion(cotizacionData);
+  void actualizarProductoEnCotizacion(String cotizacionId, int index, ProductoCotizado producto) {
+    state = CatalogoCotizaciones(
+      cotizaciones: state.cotizaciones.map((cotizacion) {
+        if (cotizacion.id == cotizacionId) {
+          final nuevosProductos = List<ProductoCotizado>.from(cotizacion.productos);
+          nuevosProductos[index] = producto;
+          return cotizacion.copyWith(
+            productos: nuevosProductos,
+            subTotal: _calcularSubTotal(nuevosProductos),
+            total: _calcularTotal(nuevosProductos, cotizacion.descuentoGlobal),
+          );
+        }
+        return cotizacion;
+      }).toList()
+    );
   }
 
-  double get subTotal {
-    return state.productos.fold(0, (sum, producto) => sum + producto.precioFinal);
+  void aplicarDescuentoGlobalACotizacion(String cotizacionId, Descuento descuento) {
+    state = CatalogoCotizaciones(
+      cotizaciones: state.cotizaciones.map((cotizacion) {
+        if (cotizacion.id == cotizacionId) {
+          return cotizacion.copyWith(
+            descuentoGlobal: descuento,
+            // Actualizar totales al aplicar descuento
+            subTotal: _calcularSubTotal(cotizacion.productos),
+            total: _calcularTotal(cotizacion.productos, descuento),
+          );
+        }
+        return cotizacion;
+      }).toList()
+    );
   }
 
-  double get total {
-    double total = subTotal;
-    final descuento = state.descuentoGlobal;
-    
+  double _calcularSubTotal(List<ProductoCotizado> productos) {
+    return productos.fold(0, (sum, p) => sum + p.precioFinal);
+  }
+
+  double _calcularTotal(List<ProductoCotizado> productos, Descuento? descuento) {
+    double total = _calcularSubTotal(productos);
     if (descuento != null) {
       if (descuento.tipo == 'porcentaje') {
         total *= (1 - descuento.valor / 100);
@@ -61,37 +148,6 @@ class CotizacionNotifier extends StateNotifier<CotizacionState> {
         total -= descuento.valor;
       }
     }
-    
     return total;
-  }
-}
-
-@immutable
-class CotizacionState {
-  final List<ProductoCotizado> productos;
-  final Descuento? descuentoGlobal;
-
-  const CotizacionState({
-    required this.productos,
-    this.descuentoGlobal,
-  });
-
-  factory CotizacionState.empty() => const CotizacionState(productos: []);
-
-  CotizacionState copyWith({
-    List<ProductoCotizado>? productos,
-    Descuento? descuentoGlobal,
-  }) {
-    return CotizacionState(
-      productos: productos ?? this.productos,
-      descuentoGlobal: descuentoGlobal ?? this.descuentoGlobal,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'productos': productos.map((p) => p.toJson()).toList(),
-      'descuentoGlobal': descuentoGlobal?.toJson(),
-    };
   }
 }

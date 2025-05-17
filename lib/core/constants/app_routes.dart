@@ -19,7 +19,7 @@ class AppRoutes {
       productos: (context) => ProductsPage(),
       agregarProducto: (context) => FormProductoScreen(),
       listaCompras: (context) => ListaComprasScreen(),
-      cotizaciones: (context) => CotizacionScreen(),
+      cotizaciones: (context) => ListaCotizacionesScreen(),
       extras: (context) => ExtrasScreen(),
       parametrosCostos: (context) => CostosElaboracionScreen(),
     };

@@ -1,13 +1,26 @@
+import 'package:craftz_app/data/repositories/cotizacion_repositories.dart';
 import 'package:craftz_app/providers/cotizaciones_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ResumenCotizacion extends ConsumerWidget {
+  final String cotizacionId;
+
+  ResumenCotizacion({
+    required this.cotizacionId,
+  });
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cotizacion = ref.watch(cotizacionProvider);
-    final subTotal = ref.read(cotizacionProvider.notifier).subTotal;
-    final total = ref.read(cotizacionProvider.notifier).total;
+    final cotizacion = ref.watch(
+      cotizacionesProvider.select(
+        (state) => state.cotizaciones.firstWhere(
+          (c) => c.id == cotizacionId
+        ),
+      ),
+    );
+    final subTotal = cotizacion.subTotal;
+    final total = cotizacion.total;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -51,14 +64,14 @@ class ResumenCotizacion extends ConsumerWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => _mostrarDialogoDescuentoGlobal(context, ref),
+                  onPressed: () => _mostrarDialogoDescuentoGlobal(context, ref, cotizacionId),
                   child: const Text('Descuento Global'),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _guardarCotizacion(ref, context),
+                  onPressed: () => _guardarCotizacion(ref, context, cotizacionId),
                   child: const Text('Guardar Cotización'),
                 ),
               ),
@@ -69,10 +82,17 @@ class ResumenCotizacion extends ConsumerWidget {
     );
   }
 
-  void _mostrarDialogoDescuentoGlobal(BuildContext context, WidgetRef ref) {
-    String razon = ref.read(cotizacionProvider).descuentoGlobal?.razon ?? '';
-    String tipo = ref.read(cotizacionProvider).descuentoGlobal?.tipo ?? 'porcentaje';
-    double valor = ref.read(cotizacionProvider).descuentoGlobal?.valor ?? 0;
+  void _mostrarDialogoDescuentoGlobal(BuildContext context, WidgetRef ref, String cotizacionId) {
+    final cotizacion = ref.watch(
+      cotizacionesProvider.select(
+        (state) => state.cotizaciones.firstWhere(
+          (c) => c.id == cotizacionId
+        ),
+      ),
+    );
+    String razon = cotizacion.descuentoGlobal?.razon ?? '';
+    String tipo = cotizacion.descuentoGlobal?.tipo ?? 'porcentaje';
+    double valor = cotizacion.descuentoGlobal?.valor ?? 0;
 
     showDialog(
       context: context,
@@ -110,10 +130,10 @@ class ResumenCotizacion extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                ref.read(cotizacionProvider.notifier).aplicarDescuentoGlobal(
-                  razon: razon,
-                  tipo: tipo,
-                  valor: valor,
+                final newDescuento = Descuento(razon: razon, tipo: tipo, valor: valor);
+                ref.read(cotizacionesProvider.notifier).aplicarDescuentoGlobalACotizacion(
+                  cotizacion.id!,
+                  newDescuento
                 );
                 Navigator.pop(context);
               },
@@ -125,8 +145,11 @@ class ResumenCotizacion extends ConsumerWidget {
     );
   }
 
-  void _guardarCotizacion(WidgetRef ref, BuildContext context) async {
-    final cotizacion = ref.read(cotizacionProvider);
+  void _guardarCotizacion(WidgetRef ref, BuildContext context, String cotizacionId) async {
+      final cotizacion = ref.read(
+        cotizacionesProvider).cotizaciones.firstWhere(
+          (c) => c.id == cotizacionId,
+        );
     if (cotizacion.productos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Agrega al menos un producto')),
@@ -135,7 +158,7 @@ class ResumenCotizacion extends ConsumerWidget {
     }
     
     try {
-      await ref.read(cotizacionProvider.notifier).guardarCotizacion();
+      //await ref.read(cotizacionesProvider.notifier).actualizarCotizacion();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cotización guardada exitosamente')),

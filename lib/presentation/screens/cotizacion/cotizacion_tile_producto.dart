@@ -1,10 +1,10 @@
+import 'package:craftz_app/data/models/cotizacion/extra_cotizado_model.dart';
 import 'package:craftz_app/data/models/extras/parametro_costo_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../../data/repositories/cotizacion_repositories.dart';
 
-import 'package:craftz_app/providers/product_notifier.dart';
 import 'package:craftz_app/providers/extras_provider.dart';
 import 'package:craftz_app/core/utils/calculadorCosto.dart';
 import 'package:craftz_app/providers/parametros_costos_provider.dart';
@@ -29,6 +29,8 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Card(
       child: Column(
         children: [
@@ -40,7 +42,7 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
                   onPressed: (context) async {
                     _mostrarDialogoDescuento();
                   },
-                  backgroundColor: Colors.blue,
+                  backgroundColor: colors.primary,
                   icon: Icons.discount,
                   label: 'Agregar Descuento',
                 ),
@@ -48,7 +50,7 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
                   onPressed: (context) async {
                     widget.onRemove();
                   },
-                  backgroundColor: Colors.red,
+                  backgroundColor: colors.secondary,
                   icon: Icons.delete,
                   label: 'Eliminar',
                 ),
@@ -142,13 +144,11 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
 
   void _mostrarDialogoExtras() async {
     final CalculadorCostos calculador = CalculadorCostos(ref);
-    final productoOriginal = ref.read(productosProvider.notifier)
-      .obtenerProductoPorId(widget.producto.productoRef);
     
     // Obtener extras disponibles para esta subcategoría
     final extrasDisponibles = await ref.watch(extrasProvider).extras;
 
-    final nuevosExtras = await showDialog<List<Extra>>(
+    final nuevosExtras = await showDialog<List<ExtraCotizado>>(
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -157,7 +157,7 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
               producto: widget.producto,
               extrasDisponibles: extrasDisponibles,
               calculador: calculador,
-              subcategoriaId: productoOriginal!.subcategoria,
+              subcategoriaId: widget.producto.subcategoriaId,
               onExtrasUpdated: (nuevosExtras, nuevoPrecio) {
                 widget.onUpdate(widget.producto.copyWith(
                   extras: nuevosExtras,
@@ -267,7 +267,7 @@ class DialogoExtras extends ConsumerStatefulWidget {
   final List<Extra> extrasDisponibles;
   final CalculadorCostos calculador;
   final String subcategoriaId;
-  final Function(List<Extra>, double) onExtrasUpdated;
+  final Function(List<ExtraCotizado>, double) onExtrasUpdated;
 
   const DialogoExtras({
     required this.producto,
@@ -282,7 +282,7 @@ class DialogoExtras extends ConsumerStatefulWidget {
 }
 
 class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
-  late List<Extra> _extrasActuales;
+  late List<ExtraCotizado> _extrasActuales;
 
   @override
   void initState() {
@@ -299,12 +299,31 @@ class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
     );
 
     if (extraTemporal != null) {
-      await _agregarExtra(extraTemporal);
+      await _agregarExtra(extraTemporal, esTemporal: true);
     }
   }
 
-  Future<void> _agregarExtra(Extra extra) async {
-    final nuevosExtras = List.of(_extrasActuales)..add(extra);
+  Future<void> _agregarExtra(Extra extra, {bool esTemporal = false}) async {
+    ParametroCalculo? parametroCalculo = null;
+    final costo = ref.read(costosElaboracionProvider.notifier).getParametroById(extra.parametroCalculoId);
+    if (costo != null) {
+      final valor = costo.monto / (costo.anchoPlancha! * costo.largoPlancha!);
+      parametroCalculo = ParametroCalculo(nombre: costo.nombre, valor: valor); 
+    }
+
+    final nuevoExtraCotizado = ExtraCotizado(
+      esTemporal: esTemporal,
+      extraRef: extra.id,
+      nombre: extra.nombre, 
+      unidad: extra.unidad, 
+      monto: extra.unidad == UnidadExtra.pieza
+        ? extra.monto!
+        : extra.calcularMontoWithOwnParameter(ref),
+      largoCm: extra.largoCm,
+      anchoCm: extra.anchoCm,
+      parametroCalculo: parametroCalculo,
+    );
+    final nuevosExtras = List.of(_extrasActuales)..add(nuevoExtraCotizado);
     final precioNeto = await widget.calculador.calcularPrecioFinal(
       subcategoriaId: widget.subcategoriaId,
       extras: nuevosExtras,
@@ -318,7 +337,7 @@ class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
     widget.onExtrasUpdated(nuevosExtras, precioNeto);
   }
 
-  Future<void> _eliminarExtra(Extra extra) async {
+  Future<void> _eliminarExtra(ExtraCotizado extra) async {
     final nuevosExtras = List.of(_extrasActuales)..remove(extra);
     final precioNeto = await widget.calculador.calcularPrecioFinal(
       subcategoriaId: widget.subcategoriaId,
@@ -335,8 +354,10 @@ class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     return AlertDialog(
-      title: const Text('Agregar Extras'),
+      title: Text('Agregar Extras', style: textTheme.titleSmall),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -364,7 +385,11 @@ class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
             // Botón para agregar extra temporal
             OutlinedButton.icon(
               icon: const Icon(Icons.add),
-              label: const Text('Tamaño manual'),
+              label: const Text('Tamaño manual', style: TextStyle(fontWeight: FontWeight.w600)),
+              style: OutlinedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary
+              ),
               onPressed: _agregarExtraTemporal,
             ),
             const SizedBox(height: 8),
@@ -401,6 +426,12 @@ class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, _extrasActuales),
+          style: TextButton.styleFrom(
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            textStyle: TextStyle(fontWeight: FontWeight.w600),
+            padding: EdgeInsets.symmetric(horizontal: 20.0)
+          ),
           child: const Text('Cerrar'),
         ),
       ],
@@ -426,72 +457,84 @@ class __DialogoExtraTemporalState extends State<_DialogoExtraTemporal> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     return AlertDialog(
-      title: const Text('Extra temporal'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                initialValue: _nombre,
-                decoration: const InputDecoration(labelText: 'Nombre*'),
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Este campo es requerido' : null,
-                onChanged: (value) => _nombre = value,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      decoration: const InputDecoration(labelText: 'Ancho (cm)*'),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) return 'Requerido';
-                        if (double.tryParse(value!) == null) return 'Número inválido';
-                        return null;
-                      },
-                      onChanged: (value) => _anchoCm = double.parse(value),
+      title: Text('Extra Personalizado', style: textTheme.titleSmall),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * .85,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  initialValue: _nombre,
+                  decoration: const InputDecoration(labelText: 'Nombre*'),
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Este campo es requerido' : null,
+                  onChanged: (value) => _nombre = value,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        decoration: const InputDecoration(labelText: 'Ancho (cm)*'),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) return 'Requerido';
+                          if (double.tryParse(value!) == null) return 'Número inválido';
+                          return null;
+                        },
+                        onChanged: (value) => _anchoCm = double.parse(value),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      decoration: const InputDecoration(labelText: 'Largo (cm)*'),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) return 'Requerido';
-                        if (double.tryParse(value!) == null) return 'Número inválido';
-                        return null;
-                      },
-                      onChanged: (value) => _largoCm = double.parse(value),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextFormField(
+                        decoration: const InputDecoration(labelText: 'Largo (cm)*'),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) return 'Requerido';
+                          if (double.tryParse(value!) == null) return 'Número inválido';
+                          return null;
+                        },
+                        onChanged: (value) => _largoCm = double.parse(value),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _parametroCalculoId,
-                decoration: const InputDecoration(labelText: 'Parámetro de cálculo*'),
-                items: widget.parametrosDisponibles.map((parametro) {
-                  return DropdownMenuItem(
-                    value: parametro.id,
-                    child: Text(parametro.nombre),
-                  );
-                }).toList(),
-                validator: (value) => value == null ? 'Seleccione un parámetro' : null,
-                onChanged: (value) => _parametroCalculoId = value,
-              ),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _parametroCalculoId,
+                  decoration: const InputDecoration(labelText: 'Parámetro de cálculo*'),
+                  items: widget.parametrosDisponibles
+                          .where((parametro) => parametro.unidad == UnidadCosto.cm_cuadrado)
+                          .map((parametro) {
+                    return DropdownMenuItem(
+                      value: parametro.id,
+                      child: Text(parametro.nombre, style: textTheme.bodyLarge),
+                    );
+                  }).toList(),
+                  validator: (value) => value == null ? 'Seleccione un parámetro' : null,
+                  onChanged: (value) => _parametroCalculoId = value,
+                ),
+              ],
+            ),
           ),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          style: TextButton.styleFrom(
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            padding: EdgeInsets.symmetric(vertical: 1.0, horizontal: 20.0)
+          ),
+          child: const Text('Cancelar', style: TextStyle(fontWeight: FontWeight.w600)),
         ),
         TextButton(
           onPressed: () {
@@ -507,7 +550,12 @@ class __DialogoExtraTemporalState extends State<_DialogoExtraTemporal> {
               Navigator.pop(context, extra);
             }
           },
-          child: const Text('Agregar'),
+          style: TextButton.styleFrom(
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            padding: EdgeInsets.symmetric(vertical: 1.0, horizontal: 20.0)
+          ),
+          child: const Text('Agregar',  style: TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],
     );

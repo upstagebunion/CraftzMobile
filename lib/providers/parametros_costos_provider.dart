@@ -63,6 +63,14 @@ class CostosElaboracionNotifier extends StateNotifier<CatalogoCostosElaboracion>
     ).toList();
   }
 
+  ParametroCostoElaboracion? getParametroById(parametroId) {
+    try {
+      return state.costos.firstWhere((c) => c.id == parametroId);
+    } catch (error) {
+      return null;
+    }
+  }
+
   Future<void> eliminarCostosElaboracion(String costoId) async {
     try {
       await apiService.eliminarCostosElaboracion(costoId);

@@ -12,8 +12,8 @@ class Descuento {
   factory Descuento.fromJson(Map<String, dynamic> json) {
     return Descuento(
       razon: json['razon'],
-      tipo: json['tipo'],
-      valor: json['valor'].toDouble(),
+      tipo: json['tipo'] ?? 'cantidad',
+      valor: json['valor']?.toDouble() ?? 0,
     );
   }
 

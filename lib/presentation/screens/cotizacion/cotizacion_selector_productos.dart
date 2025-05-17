@@ -6,10 +6,11 @@ import 'package:craftz_app/controllers/products_controller.dart';
 import 'cotizacion_detalles_producto.dart';
 
 class SelectorProductosBottomSheet extends ConsumerWidget {
+  final String cotizacionId;
   final List<Producto> productos;
   final List<Categoria> categorias;
 
-  const SelectorProductosBottomSheet({required this.productos, required this.categorias});
+  const SelectorProductosBottomSheet({required this.productos, required this.categorias, required this.cotizacionId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,7 +76,7 @@ class SelectorProductosBottomSheet extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return DetallesProductoBottomSheet(producto: producto);
+        return DetallesProductoBottomSheet(producto: producto, cotizacionId: cotizacionId);
       },
     );
   }

@@ -1,3 +1,4 @@
+import 'package:craftz_app/data/models/cotizacion/extra_cotizado_model.dart';
 import 'package:craftz_app/data/repositories/catalogo_productos_repositorie.dart';
 import 'package:craftz_app/providers/categories_provider.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,9 @@ import 'package:craftz_app/core/utils/calculadorCosto.dart';
 
 class DetallesProductoBottomSheet extends ConsumerStatefulWidget {
   final Producto producto;
+  final String cotizacionId;
 
-  const DetallesProductoBottomSheet({required this.producto});
+  const DetallesProductoBottomSheet({required this.producto, required this.cotizacionId});
 
   @override
   ConsumerState<DetallesProductoBottomSheet> createState() => DetallesProductoBottomSheetState();
@@ -20,7 +22,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
   Variante? varianteSeleccionada;
   Color? colorSeleccionado;
   Talla? tallaSeleccionada;
-  List<Extra> extrasSeleccionados = [];
+  List<ExtraCotizado> extrasSeleccionados = [];
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +69,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
             style: ElevatedButton.styleFrom(
               backgroundColor:colors.primary,
               foregroundColor: colors.onPrimary,
-            ), //TODO: Antes de agregar, seleccionar un extra de tipo cm_cuadrado para el estampado
+            ),
             onPressed: _puedeAgregar(usaTallas) ? () => _agregarProducto(ref) : null,
             child: const Text('Agregar a cotización'),
           ),
@@ -126,6 +128,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
               nombre: tallaSeleccionada!.talla,
             )
           : null,
+      subcategoriaId: widget.producto.subcategoria,
       extras: extrasSeleccionados,
       cantidad: cantidad,
       precioBase: precioBase,
@@ -133,7 +136,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
       precioFinal: precioNeto * cantidad,
     );
 
-    ref.read(cotizacionProvider.notifier).agregarProducto(productoCotizado);
+    ref.read(cotizacionesProvider.notifier).agregarProductoACotizacion(widget.cotizacionId, productoCotizado);
     Navigator.pop(context);
   }
 

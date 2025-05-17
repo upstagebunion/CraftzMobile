@@ -64,4 +64,12 @@ class ExtrasNotifier extends StateNotifier<CatalogoExtras> {
       throw Exception('Error al eliminar el extra: $e');
     }
   }
+
+  Extra? getExtraById(String extraId) {
+    try { 
+      return state.extras.firstWhere((extra) => extra.id == extraId);
+    } catch (error) {
+      return null;
+    }
+  }
 }
