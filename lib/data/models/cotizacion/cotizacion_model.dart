@@ -5,7 +5,7 @@ import 'package:craftz_app/data/models/cotizacion/producto_cotizado_model.dart';
 
 class Cotizacion {
   final String id;
-  final String clienteId;
+  final String cliente;
   final String? clienteNombre; // Para mostrar sin necesidad de cargar el cliente
   final double subTotal;
   final double total;
@@ -18,7 +18,7 @@ class Cotizacion {
 
   Cotizacion({
     required this.id,
-    required this.clienteId,
+    required this.cliente,
     this.clienteNombre,
     required this.subTotal,
     required this.total,
@@ -34,7 +34,7 @@ class Cotizacion {
 
   factory Cotizacion.empty() => Cotizacion(
         id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
-        clienteId: '',
+        cliente: '',
         subTotal: 0,
         total: 0,
         productos: [],
@@ -56,7 +56,7 @@ class Cotizacion {
   }) {
     return Cotizacion(
       id: id ?? this.id,
-      clienteId: clienteId ?? this.clienteId,
+      cliente: clienteId ?? this.cliente,
       clienteNombre: clienteNombre ?? this.clienteNombre,
       subTotal: subTotal ?? this.subTotal,
       total: total ?? this.total,
@@ -72,7 +72,7 @@ class Cotizacion {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'clienteId': clienteId,
+      'cliente': cliente,
       'clienteNombre': clienteNombre,
       'subTotal': subTotal,
       'total': total,
@@ -87,9 +87,9 @@ class Cotizacion {
 
   factory Cotizacion.fromJson(Map<String, dynamic> json) {
     return Cotizacion(
-      id: json['id'],
-      clienteId: json['clienteId'],
-      clienteNombre: json['clienteNombre'],
+      id: json['_id'],
+      cliente: json['cliente']['_id'],
+      clienteNombre: json['cliente']['nombre'],
       subTotal: json['subTotal']?.toDouble() ?? 0,
       total: json['total']?.toDouble() ?? 0,
       productos: (json['productos'] as List)

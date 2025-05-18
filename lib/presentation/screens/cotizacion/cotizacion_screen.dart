@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:craftz_app/data/repositories/cotizacion_repositories.dart';
 import 'package:craftz_app/data/repositories/catalogo_productos_repositorie.dart';
 import 'package:craftz_app/data/repositories/categorias_repositorie.dart';
+import 'package:craftz_app/data/repositories/clientes_repositorie.dart';
 
 import 'package:craftz_app/providers/cotizaciones_provider.dart';
 import 'package:craftz_app/providers/categories_provider.dart' as proveedorCategorias;
 import 'package:craftz_app/providers/product_notifier.dart';
 import 'package:craftz_app/providers/extras_provider.dart';
 import 'package:craftz_app/providers/parametros_costos_provider.dart';
+import 'package:craftz_app/providers/clientes_provider.dart';
 
 import './cotizacion_resumen.dart';
 import './cotizacion_selector_productos.dart';
@@ -32,19 +34,28 @@ class CotizacionScreen extends ConsumerStatefulWidget {
 
 class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
   late String cotizacionId = widget.cotizacionId;
-  late Cotizacion? _cotizacionLocal;
+  Cotizacion? _cotizacionLocal;
+  late TextEditingController _clienteSearchController;
 
   @override
   void initState() {
     
     super.initState();
+    _clienteSearchController = TextEditingController();
     // Llamamos al provider para cargar productos cuando se inicializa
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(proveedorCategorias.categoriesProvider.notifier).cargarCategorias();
       ref.read(productosProvider.notifier).cargarProductos();
       ref.read(extrasProvider.notifier).cargarExtras();
       ref.read(costosElaboracionProvider.notifier).cargarCostosElaboracion();
+      ref.read(clientesProvider.notifier).cargarClientes();
     });
+  }
+
+  @override
+  void dispose() {
+    _clienteSearchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -69,14 +80,17 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
       appBar: AppBar(
         title: widget.nuevaCotizacion 
           ? Text('Nueva Cotización')
-          : Text('Cotizacion ${_cotizacionLocal!.clienteNombre}'),
+          : _cotizacionLocal == null
+            ? Text('Cotizacion ...')
+            : Text('Cotizacion ${_cotizacionLocal!.clienteNombre}'),
         backgroundColor: colors.primary,
         foregroundColor: colors.onPrimary,
         titleTextStyle: Theme.of(context).textTheme.headlineSmall,
         actions: [
+          if (_cotizacionLocal != null && _cotizacionLocal!.cliente == '')
           IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: () => _guardarCotizacion(ref, context),
+            icon: const Icon(Icons.face_retouching_natural_rounded),
+            onPressed: () => _mostrarSelectorCliente(context)
           ),
         ],
       ),
@@ -135,23 +149,153 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
     );
   }
 
-  void _guardarCotizacion(WidgetRef ref, dynamic context) async {
-    try {
-      widget.nuevaCotizacion 
-        ? await ref.read(cotizacionesProvider.notifier).agregarCotizacion(_cotizacionLocal!)
-        : await ref.read(cotizacionesProvider.notifier).actualizarCotizacion(_cotizacionLocal!);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cotización guardada exitosamente')),
+  void _mostrarSelectorCliente(BuildContext context) {
+    final clientes = ref.watch(clientesProvider).clientes;
+    final isLoading = ref.watch(isLoadingClientes);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Seleccionar cliente'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _clienteSearchController,
+                  decoration: const InputDecoration(
+                    labelText: 'Buscar cliente',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: (value) {
+                    // TODO: implementar busqueda
+                  },
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: clientes.length,
+                          itemBuilder: (context, index) {
+                            final cliente = clientes[index];
+                            return ListTile(
+                              leading: CircleAvatar(
+                                child: Text(cliente.nombre[0]),
+                              ),
+                              title: Text('${cliente.nombre} ${cliente.apellidoPaterno ?? ''}'),
+                              subtitle: Text(cliente.telefono ?? 'Sin teléfono'),
+                              onTap: () {
+                                _actualizarClienteEnCotizacion(cliente);
+                                Navigator.pop(context);
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Nuevo cliente'),
+              onPressed: () {
+                Navigator.pop(context);
+                _mostrarFormularioCliente(context);
+              },
+            ),
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
         );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar: $e')),
+      },
+    );
+  }
+
+  void _mostrarFormularioCliente(BuildContext context) {
+    final nombreController = TextEditingController();
+    final telefonoController = TextEditingController();
+    final correoController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Nuevo cliente'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nombreController,
+                  decoration: const InputDecoration(labelText: 'Nombre*'),
+                ),
+                TextField(
+                  controller: telefonoController,
+                  decoration: const InputDecoration(labelText: 'Teléfono'),
+                  keyboardType: TextInputType.phone,
+                ),
+                TextField(
+                  controller: correoController,
+                  decoration: const InputDecoration(labelText: 'Correo electrónico'),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              child: const Text('Guardar'),
+              onPressed: () async {
+                if (nombreController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('El nombre es obligatorio')),
+                  );
+                  return;
+                }
+
+                try {
+                  final nuevoCliente = Cliente(
+                    id: '', // El backend generará el ID
+                    nombre: nombreController.text,
+                    telefono: telefonoController.text,
+                    correo: correoController.text,
+                    fechaRegistro: DateTime.now(),
+                  );
+
+                  // Guardar el cliente y actualizar la cotización
+                  await ref.read(clientesProvider.notifier).agregarCliente(nuevoCliente);
+                  _actualizarClienteEnCotizacion(nuevoCliente);
+                  Navigator.pop(context);
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al guardar cliente: $e')),
+                  );
+                }
+              },
+            ),
+          ],
         );
-      }
-    }
+      },
+    );
+  }
+
+  void _actualizarClienteEnCotizacion(Cliente cliente) async {
+    await ref.read(cotizacionesProvider.notifier).actualizarCotizacionLocalmente(
+        _cotizacionLocal!.copyWith(
+        clienteId: cliente.id,
+        clienteNombre: '${cliente.nombre} ${cliente.apellidoPaterno ?? ''}',
+      )
+    );
+    
   }
 }

@@ -12,6 +12,7 @@ class ResumenCotizacion extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
     final cotizacion = ref.watch(
       cotizacionesProvider.select(
         (state) => state.cotizaciones.firstWhere(
@@ -71,8 +72,14 @@ class ResumenCotizacion extends ConsumerWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _guardarCotizacion(ref, context, cotizacionId),
-                  child: const Text('Guardar Cotización'),
+                  onPressed: cotizacion.cliente == '' ? null : () => _guardarCotizacion(ref, context, cotizacionId),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colors.primary,
+                    foregroundColor: colors.onPrimary,
+                    disabledBackgroundColor: Colors.grey[400],
+                    padding: EdgeInsets.symmetric(horizontal: 20.0)
+                  ),
+                  child: const Text('Guardar Cotización', style: TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
@@ -146,22 +153,32 @@ class ResumenCotizacion extends ConsumerWidget {
   }
 
   void _guardarCotizacion(WidgetRef ref, BuildContext context, String cotizacionId) async {
-      final cotizacion = ref.read(
-        cotizacionesProvider).cotizaciones.firstWhere(
-          (c) => c.id == cotizacionId,
-        );
+    final cotizacion = ref.read(
+      cotizacionesProvider).cotizaciones.firstWhere(
+        (c) => c.id == cotizacionId,
+    );
+
     if (cotizacion.productos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Agrega al menos un producto')),
       );
       return;
     }
+
+    final bool esLocal = cotizacionId.contains('temp');
     
     try {
-      //await ref.read(cotizacionesProvider.notifier).actualizarCotizacion();
+      esLocal
+      ? await ref.read(cotizacionesProvider.notifier).agregarCotizacion(cotizacion)
+      : await ref.read(cotizacionesProvider.notifier).actualizarCotizacion(cotizacion);
+      
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cotización guardada exitosamente')),
+          SnackBar(
+            content: esLocal
+            ? Text('Cotización guardada exitosamente')
+            : Text('Cotización Actualizada exitosamente')
+          ),
         );
         Navigator.pop(context);
       }

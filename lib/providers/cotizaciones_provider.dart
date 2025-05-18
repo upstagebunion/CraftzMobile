@@ -6,6 +6,8 @@ final cotizacionesProvider = StateNotifierProvider<CotizacionesNotifier, Catalog
   return CotizacionesNotifier(ref);
 });
 
+final isLoadingCotizaciones = StateProvider<bool>((ref) => true);
+
 class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
   final Ref ref;
   final ApiService apiService;
@@ -15,10 +17,15 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
 
   Future<void> cargarCotizaciones() async {
     try {
-      /*final data = await apiService.obtenerCotizaciones();
-      state = CatalogoCotizaciones(cotizaciones: data);*/
+      ref.read(isLoadingCotizaciones.notifier).state = true;
+
+      final data = await apiService.obtenerCotizaciones();
+      final cotizaciones = data.map((item) => Cotizacion.fromJson(item)).toList();
+      state = CatalogoCotizaciones(cotizaciones: cotizaciones);
     } catch (e) {
       throw Exception('Error al cargar cotizaciones: $e');
+    } finally {
+      ref.read(isLoadingCotizaciones.notifier).state = false;
     }
   }
 
@@ -33,9 +40,8 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
   }
 
   // Operaciones CRUD para múltiples cotizaciones
-  Future<void> agregarCotizacion(Cotizacion cotizacion) async {
-    try {
-      /*final nuevaCotizacion = await apiService.guardarCotizacion(cotizacion);*/
+  Future<void> agregarCotizacionTemp(Cotizacion cotizacion) async {
+    try{
       state = CatalogoCotizaciones(
         cotizaciones: [...state.cotizaciones, cotizacion]
       );
@@ -44,14 +50,42 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
     }
   }
 
+  Future<void> agregarCotizacion(Cotizacion cotizacion) async {
+    //TODO: verificar coso de excepcion, aunque en la app parece que funciona bien xd
+    try {
+      final cotizacionTempId = cotizacion.id;
+      final response = await apiService.agregarCotizacion(cotizacion.toJson());
+      final nuevaCotizacion = Cotizacion.fromJson(response);
+      final cotizacionesSinTemp = state.cotizaciones.where((c) => c.id != cotizacionTempId).toList();
+      state = CatalogoCotizaciones(
+        cotizaciones: [...cotizacionesSinTemp, nuevaCotizacion]
+      );
+    } catch (e) {
+      throw Exception('Error al agregar cotización: $e');
+    }
+  }
+
   Future<void> actualizarCotizacion(Cotizacion cotizacion) async {
     try {
-      /*await apiService.actualizarCotizacion(cotizacion);
+      final response = await apiService.actualizarCotizacion(cotizacion.id, cotizacion.toJson());
+      final cotizacionActualizada = Cotizacion.fromJson(response);
+      state = CatalogoCotizaciones(
+        cotizaciones: state.cotizaciones.map((c) => 
+          c.id == cotizacion.id ? cotizacionActualizada : c
+        ).toList()
+      );
+    } catch (e) {
+      throw Exception('Error al actualizar cotización: $e');
+    }
+  }
+
+  Future<void> actualizarCotizacionLocalmente(Cotizacion cotizacion) async {
+    try {
       state = CatalogoCotizaciones(
         cotizaciones: state.cotizaciones.map((c) => 
           c.id == cotizacion.id ? cotizacion : c
         ).toList()
-      );*/
+      );
     } catch (e) {
       throw Exception('Error al actualizar cotización: $e');
     }
@@ -59,10 +93,10 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
 
    Future<void> eliminarCotizacion(String id) async {
     try {
-      /*await apiService.eliminarCotizacion(id);
+      await apiService.eliminarCotizacion(id);
       state = CatalogoCotizaciones(
         cotizaciones: state.cotizaciones.where((c) => c.id != id).toList()
-      );*/
+      );
     } catch (e) {
       throw Exception('Error al eliminar cotización: $e');
     }

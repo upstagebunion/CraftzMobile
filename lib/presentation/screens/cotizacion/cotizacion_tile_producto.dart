@@ -429,10 +429,9 @@ class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
           style: TextButton.styleFrom(
             backgroundColor: colorScheme.primary,
             foregroundColor: colorScheme.onPrimary,
-            textStyle: TextStyle(fontWeight: FontWeight.w600),
             padding: EdgeInsets.symmetric(horizontal: 20.0)
           ),
-          child: const Text('Cerrar'),
+          child: const Text('Cerrar', style: TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],
     );

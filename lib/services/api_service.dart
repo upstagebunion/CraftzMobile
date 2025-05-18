@@ -367,4 +367,160 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> getClientes() async {
+    String? token = await getToken();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/clientes/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al cargar clientes: $mensaje';
+    }
+  }
+
+  // Agregar un nuevo cliente
+  Future<Map<String, dynamic>> agregarCliente(Map<String, dynamic> cliente) async {
+    String? token = await getToken();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/clientes/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+      body: jsonEncode(cliente),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al crear cliente: $mensaje';
+    }
+  }
+
+  // Actualizar un cliente
+  Future<Map<String, dynamic>> actualizarCliente(String id, Map<String, dynamic> cliente) async {
+    String? token = await getToken();
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/clientes/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+      body: jsonEncode(cliente),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al actualizar cliente: $mensaje';
+    }
+  }
+
+  // Eliminar un cliente
+  Future<void> eliminarCliente(String id) async {
+    String? token = await getToken();
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/clientes/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al eliminar cliente: $mensaje';
+    }
+  }
+
+  Future<List<dynamic>> obtenerCotizaciones() async {
+    String? token = await getToken();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/cotizaciones/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['cotizaciones'];
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al cargar cotizaciones: $mensaje';
+    }
+  }
+
+  Future<Map<String, dynamic>> agregarCotizacion(Map<String, dynamic> cotizacion) async {
+    String? token = await getToken();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/cotizaciones/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+      body: jsonEncode(cotizacion),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body)['cotizacion'];
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al crear cotizacion: $mensaje';
+    }
+  }
+
+  Future<Map<String, dynamic>> actualizarCotizacion(String id, Map<String, dynamic> cotizacion) async {
+    String? token = await getToken();
+
+    final response = await http.patch(
+      Uri.parse('$baseUrl/api/cotizaciones/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+      body: jsonEncode(cotizacion),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['cotizacion'];
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al crear cotizacion: $mensaje';
+    }
+  }
+
+  Future<void> eliminarCotizacion(String id) async {
+    String? token = await getToken();
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/cotizaciones/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al eliminar cliente: $mensaje';
+    }
+  }
+
+  
 }

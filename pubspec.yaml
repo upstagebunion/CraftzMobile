@@ -1,6 +1,6 @@
 name: craftz_app
 description: Craftz Administration App.
-version: 1.2.6
+version: 1.2.7
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -16,7 +16,7 @@ dependencies:
   shared_preferences: ^2.4.0
   flutter_dotenv: ^5.0.2
   flutter_slidable: ^4.0.0
-
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

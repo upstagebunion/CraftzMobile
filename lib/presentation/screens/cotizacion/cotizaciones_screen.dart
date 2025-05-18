@@ -3,17 +3,42 @@ import 'package:craftz_app/providers/cotizaciones_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:craftz_app/presentation/screens/cotizacion/cotizacion_screen.dart';
+import 'package:intl/intl.dart';
 
-class ListaCotizacionesScreen extends ConsumerWidget {
+class ListaCotizacionesScreen extends ConsumerStatefulWidget {
   const ListaCotizacionesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cotizaciones = ref.watch(cotizacionesProvider).cotizaciones;
+  _ListaCotizacionesScreenState createState() => _ListaCotizacionesScreenState();
+}
+
+class _ListaCotizacionesScreenState extends ConsumerState<ListaCotizacionesScreen>{
+
+  @override
+  void initState() {
+    
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(cotizacionesProvider.notifier).cargarCotizaciones();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isLoading = ref.watch(isLoadingCotizaciones);
+    late final cotizaciones;
+
+    if (!isLoading) {
+      cotizaciones = ref.watch(cotizacionesProvider).cotizaciones;
+    }
     
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mis Cotizaciones'),
+        backgroundColor: colors.primary,
+        foregroundColor: colors.onPrimary,
+        titleTextStyle: Theme.of(context).textTheme.headlineSmall,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -25,7 +50,9 @@ class ListaCotizacionesScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: cotizaciones.isEmpty
+      body: isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : cotizaciones.isEmpty
           ? const Center(child: Text('No hay cotizaciones'))
           : RefreshIndicator(
               onRefresh: () => ref.read(cotizacionesProvider.notifier).cargarCotizaciones(),
@@ -36,7 +63,6 @@ class ListaCotizacionesScreen extends ConsumerWidget {
                   return _CotizacionItem(
                     cotizacion: cotizacion,
                     onTap: () => _verCotizacion(context, ref, cotizacion),
-                    onEdit: () => _editarCotizacion(context, ref, cotizacion),
                     onDelete: () => _eliminarCotizacion(ref, cotizacion.id!),
                   );
                 },
@@ -57,17 +83,13 @@ class ListaCotizacionesScreen extends ConsumerWidget {
     );
   }
   
-  Widget? _editarCotizacion(BuildContext context, WidgetRef ref, Cotizacion cotizacion) {
-    return null;
-  }
-  
-  Widget? _eliminarCotizacion(WidgetRef ref, String s) {
-    return null;
+  void _eliminarCotizacion(WidgetRef ref, String id) {
+    ref.read(cotizacionesProvider.notifier).eliminarCotizacion(id);
   }
   
   void _nuevaCotizacion(BuildContext context, WidgetRef ref) {
     final Cotizacion cotizacionTemporal = Cotizacion.empty();
-    ref.read(cotizacionesProvider.notifier).agregarCotizacion(cotizacionTemporal);
+    ref.read(cotizacionesProvider.notifier).agregarCotizacionTemp(cotizacionTemporal);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -78,22 +100,16 @@ class ListaCotizacionesScreen extends ConsumerWidget {
       ),
     );
   }
-
-  
-
-  // ... Métodos _nuevaCotizacion, _editarCotizacion, _eliminarCotizacion, _verCotizacion ...
 }
 
 class _CotizacionItem extends StatelessWidget {
   final Cotizacion cotizacion;
   final VoidCallback onTap;
-  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _CotizacionItem({
     required this.cotizacion,
     required this.onTap,
-    required this.onEdit,
     required this.onDelete,
   });
 
@@ -111,17 +127,16 @@ class _CotizacionItem extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Cotización #${cotizacion.id}',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Expanded(
+                    child: Text(
+                      'Cotización #${cotizacion.id}',
+                      style: Theme.of(context).textTheme.titleMedium,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, size: 20),
-                        onPressed: onEdit,
-                      ),
                       IconButton(
                         icon: const Icon(Icons.delete, size: 20, color: Colors.red),
                         onPressed: onDelete,
@@ -134,10 +149,10 @@ class _CotizacionItem extends StatelessWidget {
               Text('Cliente: ${cotizacion.clienteNombre ?? 'Sin cliente'}'),
               Text('Productos: ${cotizacion.productos.length}'),
               Text('Total: \$${cotizacion.total.toStringAsFixed(2)}'),
-              Text('Fecha: ${cotizacion.fechaCreacion}'),
+              Text('Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(cotizacion.fechaCreacion)}'),
               if (cotizacion.expira.isAfter(DateTime.now()))
                 Text(
-                  'Válida hasta: ${cotizacion.expira}',
+                  'Válida hasta: ${DateFormat('dd/MM/yyyy HH:mm').format(cotizacion.expira)}',
                   style: const TextStyle(color: Colors.green),
                 )
               else

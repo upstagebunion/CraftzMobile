@@ -11,6 +11,7 @@ class AppRoutes {
   static const String cotizaciones = '/cotizaciones';
   static const String extras = '/extras';
   static const String parametrosCostos = '/parametrosCostos';
+  static const String clientes = '/clientes';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -22,6 +23,7 @@ class AppRoutes {
       cotizaciones: (context) => ListaCotizacionesScreen(),
       extras: (context) => ExtrasScreen(),
       parametrosCostos: (context) => CostosElaboracionScreen(),
+      clientes: (context) => ClientesScreen(),
     };
   }
 }
