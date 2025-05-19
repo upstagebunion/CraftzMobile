@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../services/auth_login.dart';
+import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
 class LoginScreen extends StatefulWidget{
   @override
@@ -51,11 +52,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final theme = Theme.of(context);
     final color = theme.colorScheme;
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('Iniciar Sesion'),
-        backgroundColor: color.primary,
-        foregroundColor: color.onPrimary,
-        titleTextStyle: theme.textTheme.headlineMedium,
         ),
       body: Container(
         width: screenWidth,

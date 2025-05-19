@@ -5,25 +5,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ResumenCotizacion extends ConsumerWidget {
   final String cotizacionId;
+  final contextPrincipal;
 
   ResumenCotizacion({
     required this.cotizacionId,
+    required this.contextPrincipal,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
-    final cotizacion = ref.watch(
+    late final cotizacion;
+    cotizacion = ref.watch(
       cotizacionesProvider.select(
         (state) => state.cotizaciones.firstWhere(
-          (c) => c.id == cotizacionId
+          (c) => c.id == cotizacionId,
+          orElse: null
         ),
       ),
     );
     final subTotal = cotizacion.subTotal;
     final total = cotizacion.total;
 
-    return Container(
+    return cotizacion == null 
+    ? const SizedBox.shrink()
+    : Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey[200],
@@ -168,23 +174,23 @@ class ResumenCotizacion extends ConsumerWidget {
     final bool esLocal = cotizacionId.contains('temp');
     
     try {
+      Navigator.pop(context);
       esLocal
       ? await ref.read(cotizacionesProvider.notifier).agregarCotizacion(cotizacion)
       : await ref.read(cotizacionesProvider.notifier).actualizarCotizacion(cotizacion);
       
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if (contextPrincipal.mounted) {
+        ScaffoldMessenger.of(contextPrincipal).showSnackBar(
           SnackBar(
             content: esLocal
             ? Text('Cotización guardada exitosamente')
             : Text('Cotización Actualizada exitosamente')
           ),
         );
-        Navigator.pop(context);
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if (contextPrincipal.mounted) {
+        ScaffoldMessenger.of(contextPrincipal).showSnackBar(
           SnackBar(content: Text('Error al guardar: $e')),
         );
       }

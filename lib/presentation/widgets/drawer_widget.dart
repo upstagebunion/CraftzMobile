@@ -51,9 +51,9 @@ class CustomDrawer extends StatelessWidget{
           ),
           ListTile(
             leading: Icon(Icons.sell, color: theme.colorScheme.primary),
-            title: Text('Venta', style: theme.textTheme.bodyMedium),
+            title: Text('Ventas', style: theme.textTheme.bodyMedium),
             onTap: (){
-
+              Navigator.pushNamed(context, AppRoutes.ventas);
             },
           ),
           ListTile(

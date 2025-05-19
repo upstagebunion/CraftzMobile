@@ -12,6 +12,7 @@ import 'package:craftz_app/providers/product_notifier.dart';
 import 'package:craftz_app/providers/extras_provider.dart';
 import 'package:craftz_app/providers/parametros_costos_provider.dart';
 import 'package:craftz_app/providers/clientes_provider.dart';
+import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
 import './cotizacion_resumen.dart';
 import './cotizacion_selector_productos.dart';
@@ -21,11 +22,13 @@ class CotizacionScreen extends ConsumerStatefulWidget {
 
   final String cotizacionId;
   final bool nuevaCotizacion;
+  final contextPrincipal;
 
   const CotizacionScreen({
     Key? key,
     required this.cotizacionId,
     this.nuevaCotizacion = true,
+    required this.contextPrincipal
   }) :super(key: key);
 
   @override
@@ -68,24 +71,23 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
     if (!isLoading) {
       productos = ref.watch(productosProvider).productos;
       categorias = ref.watch(proveedorCategorias.categoriesProvider).categorias;
+
       _cotizacionLocal = ref.watch(cotizacionesProvider.select(
           (state) => state.cotizaciones.firstWhere(
-            (c) => c.id == cotizacionId
+            (c) => c.id == cotizacionId,
+            orElse: null,
           ),
         ),
       );
     } 
     
-    return Scaffold(
-      appBar: AppBar(
+    return _cotizacionLocal == null 
+    ? const SizedBox.shrink()
+    : Scaffold(
+      appBar: CustomAppBar(
         title: widget.nuevaCotizacion 
           ? Text('Nueva Cotización')
-          : _cotizacionLocal == null
-            ? Text('Cotizacion ...')
-            : Text('Cotizacion ${_cotizacionLocal!.clienteNombre}'),
-        backgroundColor: colors.primary,
-        foregroundColor: colors.onPrimary,
-        titleTextStyle: Theme.of(context).textTheme.headlineSmall,
+          : Text('Cotizacion ${_cotizacionLocal!.clienteNombre}'),
         actions: [
           if (_cotizacionLocal != null && _cotizacionLocal!.cliente == '')
           IconButton(
@@ -134,7 +136,10 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
           ),
         ),
         // Resumen y total
-        ResumenCotizacion(cotizacionId: cotizacionId),
+        ResumenCotizacion(
+          cotizacionId: cotizacionId,
+          contextPrincipal: widget.contextPrincipal
+        ),
       ],
     );
   }

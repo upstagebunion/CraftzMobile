@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/drawer_widget.dart';
+import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -7,11 +8,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('Casita'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        titleTextStyle: Theme.of(context).textTheme.headlineMedium,
       ),
       drawer: const CustomDrawer(),
       body: Center(

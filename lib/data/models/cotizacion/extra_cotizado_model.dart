@@ -26,7 +26,7 @@ class ExtraCotizado {
   Map<String, dynamic> toJson() {
     return {
       'esTemporal': esTemporal,
-      'extraRef': extraRef,
+      'extraRef': esTemporal ? null: extraRef,
       'nombre': nombre,
       'unidad': unidad.toString().split('.').last,
       'monto': monto,

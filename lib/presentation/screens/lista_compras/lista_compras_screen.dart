@@ -5,6 +5,7 @@ import '../../../providers/product_notifier.dart';
 import '../../../data/repositories/catalogo_productos_repositorie.dart';
 import '../../../data/repositories/categorias_repositorie.dart';
 import '../../../controllers/missing_products_controller.dart';
+import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
 class ListaComprasScreen extends ConsumerStatefulWidget {
   @override
@@ -25,17 +26,13 @@ class _ListaComprasScreenState extends ConsumerState<ListaComprasScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final CatalogoCategorias categorias = ref.watch(categoriesProvider);
     final CatalogoProductos catalogo = ref.watch(productosProvider);
     final isLoading = ref.watch(isLoadingProvider) || ref.watch(isLoadingCategories);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Text('Productos Faltos de Stock'),
-        backgroundColor: colors.primary,
-        foregroundColor: colors.onPrimary,
-        titleTextStyle: Theme.of(context).textTheme.headlineMedium,
         actions: [
           IconButton(
             icon: Icon(Icons.filter_list),

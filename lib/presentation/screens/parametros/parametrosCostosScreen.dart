@@ -5,6 +5,7 @@ import 'package:craftz_app/providers/parametros_costos_provider.dart';
 import 'package:craftz_app/providers/categories_provider.dart';
 import 'package:craftz_app/data/repositories/extras_repositorie.dart';
 import 'package:craftz_app/data/repositories/categorias_repositorie.dart';
+import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
 class CostosElaboracionScreen extends ConsumerStatefulWidget {
   @override
@@ -36,7 +37,7 @@ class _CostosElaboracionScreenState extends ConsumerState<CostosElaboracionScree
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('Parámetros de Costo'),
       ),
       body: SafeArea(

@@ -8,6 +8,7 @@ import '../../../providers/categories_provider.dart' as proveedorCategorias;
 import '../../../controllers/products_controller.dart';
 import './modal_agregar_productos.dart';
 import 'form_producto.dart';
+import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
 class ProductsPage extends ConsumerStatefulWidget {
   @override
@@ -40,11 +41,8 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     final isSaving = ref.watch(isSavingProvider);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Text('Inventario de Productos'),
-        backgroundColor: colors.primary,
-        foregroundColor: colors.onPrimary,
-        titleTextStyle: Theme.of(context).textTheme.headlineMedium,
       ),
       body: SafeArea(
         child: isLoading

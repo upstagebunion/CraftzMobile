@@ -521,6 +521,91 @@ class ApiService {
       throw 'Error al eliminar cliente: $mensaje';
     }
   }
-
   
+  Future<List<dynamic>> obtenerVentas() async {
+    String? token = await getToken();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/ventas/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al cargar cotizaciones: $mensaje';
+    }
+  }
+
+  Future<dynamic> actualizarEstadoVenta(String ventaId, String estado) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/api/ventas/actualizar-estado/$ventaId'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'estado': estado}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Error al actualizar estado de venta');
+  }
+
+  Future<dynamic> agregarPagoAVenta(String ventaId, Map<String, dynamic> pagoData) async {
+    try{
+      String? token = await getToken();
+      
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/ventas/agregar-pago/$ventaId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$token',
+        },
+        body: jsonEncode(pagoData),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body)['venta'];
+      } else {
+        final String mensaje = jsonDecode(response.body)['error'] ?? 'Error desconocido';
+        throw 'Error al crear cotizacion: $mensaje';
+      }
+    } catch (error) {
+      throw Exception('Error al agregar pago: $error');
+    }
+  }
+
+  Future<dynamic> liquidarVenta(String ventaId) async {
+    String? token = await getToken();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/ventas/liquidar/$ventaId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Error al liquidar venta');
+  }
+
+  Future<void> convertirAVenta(String id) async {
+    String? token = await getToken();
+
+    final response = await http.patch(
+      Uri.parse('$baseUrl/api/cotizaciones/convertir-a-venta/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode != 201) {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al eliminar cliente: $mensaje';
+    }
+  }
 }

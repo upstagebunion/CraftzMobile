@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:craftz_app/providers/extras_provider.dart';
 import 'package:craftz_app/data/repositories/extras_repositorie.dart';
+import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
 class ExtrasScreen extends ConsumerStatefulWidget {
   @override
@@ -31,7 +32,7 @@ class _ExtrasScreenState extends ConsumerState<ExtrasScreen>{
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('Gestión de Extras'),
       ),
       body: isLoading

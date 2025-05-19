@@ -3,7 +3,9 @@ import 'package:craftz_app/providers/cotizaciones_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:craftz_app/presentation/screens/cotizacion/cotizacion_screen.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
+import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
 class ListaCotizacionesScreen extends ConsumerStatefulWidget {
   const ListaCotizacionesScreen({super.key});
@@ -34,11 +36,8 @@ class _ListaCotizacionesScreenState extends ConsumerState<ListaCotizacionesScree
     }
     
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('Mis Cotizaciones'),
-        backgroundColor: colors.primary,
-        foregroundColor: colors.onPrimary,
-        titleTextStyle: Theme.of(context).textTheme.headlineSmall,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -63,7 +62,8 @@ class _ListaCotizacionesScreenState extends ConsumerState<ListaCotizacionesScree
                   return _CotizacionItem(
                     cotizacion: cotizacion,
                     onTap: () => _verCotizacion(context, ref, cotizacion),
-                    onDelete: () => _eliminarCotizacion(ref, cotizacion.id!),
+                    onDelete: () => _eliminarCotizacion(ref, cotizacion.id),
+                    onConvert: () => _convertirAVenta(ref, cotizacion.id)
                   );
                 },
               ),
@@ -72,15 +72,35 @@ class _ListaCotizacionesScreenState extends ConsumerState<ListaCotizacionesScree
   }
   
   void _verCotizacion(BuildContext context, WidgetRef ref, Cotizacion cotizacion) {
+    final contextPrincipal = context;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => CotizacionScreen(
           cotizacionId: cotizacion.id,
           nuevaCotizacion: false,
+          contextPrincipal: contextPrincipal
         ),
       ),
     );
+  }
+
+  void _convertirAVenta(WidgetRef ref, String id) async {
+    try {
+      await ref.read(cotizacionesProvider.notifier).convetirCotizacionAVenta(id);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Cotización actualizada exitosamente')
+          ),
+        );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:  Text('Error al actualizar la cotizacion')
+        ),
+      );
+    }
+    
   }
   
   void _eliminarCotizacion(WidgetRef ref, String id) {
@@ -88,6 +108,7 @@ class _ListaCotizacionesScreenState extends ConsumerState<ListaCotizacionesScree
   }
   
   void _nuevaCotizacion(BuildContext context, WidgetRef ref) {
+    final contextPrincipal = context;
     final Cotizacion cotizacionTemporal = Cotizacion.empty();
     ref.read(cotizacionesProvider.notifier).agregarCotizacionTemp(cotizacionTemporal);
     Navigator.push(
@@ -96,6 +117,7 @@ class _ListaCotizacionesScreenState extends ConsumerState<ListaCotizacionesScree
         builder: (context) => CotizacionScreen(
           cotizacionId: cotizacionTemporal.id,
           nuevaCotizacion: true,
+          contextPrincipal: contextPrincipal
         ),
       ),
     );
@@ -106,61 +128,79 @@ class _CotizacionItem extends StatelessWidget {
   final Cotizacion cotizacion;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback onConvert;
 
   const _CotizacionItem({
     required this.cotizacion,
     required this.onTap,
     required this.onDelete,
+    required this.onConvert,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Cotización #${cotizacion.id}',
-                      style: Theme.of(context).textTheme.titleMedium,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                        onPressed: onDelete,
+    final ColorScheme colors = Theme.of(context).colorScheme;
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) async {
+              onConvert();
+            },
+            backgroundColor: colors.primary,
+            icon: Icons.point_of_sale,
+            label: 'Convertir a venta',
+          ),
+        ]
+      ),
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Cotización #${cotizacion.id}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text('Cliente: ${cotizacion.clienteNombre ?? 'Sin cliente'}'),
-              Text('Productos: ${cotizacion.productos.length}'),
-              Text('Total: \$${cotizacion.total.toStringAsFixed(2)}'),
-              Text('Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(cotizacion.fechaCreacion)}'),
-              if (cotizacion.expira.isAfter(DateTime.now()))
-                Text(
-                  'Válida hasta: ${DateFormat('dd/MM/yyyy HH:mm').format(cotizacion.expira)}',
-                  style: const TextStyle(color: Colors.green),
-                )
-              else
-                Text(
-                  'Expirada',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                          onPressed: onDelete,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-            ],
+                const SizedBox(height: 8),
+                Text('Cliente: ${cotizacion.clienteNombre ?? 'Sin cliente'}'),
+                Text('Productos: ${cotizacion.productos.length}'),
+                Text('Total: \$${cotizacion.total.toStringAsFixed(2)}'),
+                Text('Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(cotizacion.fechaCreacion)}'),
+                if (cotizacion.expira.isAfter(DateTime.now()))
+                  Text(
+                    'Válida hasta: ${DateFormat('dd/MM/yyyy HH:mm').format(cotizacion.expira)}',
+                    style: const TextStyle(color: Colors.green),
+                  )
+                else
+                  Text(
+                    'Expirada',
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

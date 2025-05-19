@@ -2,6 +2,7 @@ import 'package:craftz_app/data/repositories/clientes_repositorie.dart';
 import 'package:craftz_app/providers/clientes_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
 class ClientesScreen extends ConsumerStatefulWidget {
   const ClientesScreen({super.key});
@@ -145,7 +146,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
     final isLoading = ref.watch(isLoadingClientes);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('Clientes'),
         actions: [
           IconButton(

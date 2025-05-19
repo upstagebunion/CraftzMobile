@@ -5,6 +5,7 @@ import '../../../providers/product_notifier.dart';
 import '../../../providers/categories_provider.dart';
 import '../../../services/api_service.dart';
 import '../../../data/models/catalogo_productos/product_model.dart';
+import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
 class FormProductoScreen extends ConsumerStatefulWidget {
   final bool isEditing;
@@ -70,11 +71,8 @@ class _FormProductoScreenState extends ConsumerState<FormProductoScreen> {
     catalogoCategorias = ref.watch(categoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Text(widget.isEditing ? 'Editar Producto' : 'Agregar Producto'),
-        backgroundColor: colors.primary,
-        foregroundColor: colors.onPrimary,
-        titleTextStyle: Theme.of(context).textTheme.headlineMedium,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

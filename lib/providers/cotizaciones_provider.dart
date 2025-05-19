@@ -56,9 +56,10 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
       final cotizacionTempId = cotizacion.id;
       final response = await apiService.agregarCotizacion(cotizacion.toJson());
       final nuevaCotizacion = Cotizacion.fromJson(response);
-      final cotizacionesSinTemp = state.cotizaciones.where((c) => c.id != cotizacionTempId).toList();
       state = CatalogoCotizaciones(
-        cotizaciones: [...cotizacionesSinTemp, nuevaCotizacion]
+        cotizaciones: state.cotizaciones.map((c) => 
+          c.id == cotizacionTempId ? nuevaCotizacion : c
+        ).toList()
       );
     } catch (e) {
       throw Exception('Error al agregar cotización: $e');
@@ -183,5 +184,16 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
       }
     }
     return total;
+  }
+
+  Future<void> convetirCotizacionAVenta(String cotizacionId) async {
+    try {
+      await apiService.convertirAVenta(cotizacionId);
+      state = CatalogoCotizaciones(
+        cotizaciones: state.cotizaciones.where((c) => c.id != cotizacionId).toList()
+      );
+    } catch (e) {
+      throw Exception('Error al eliminar cotización: $e');
+    }
   }
 }
