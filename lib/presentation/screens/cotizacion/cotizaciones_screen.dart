@@ -27,7 +27,6 @@ class _ListaCotizacionesScreenState extends ConsumerState<ListaCotizacionesScree
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final isLoading = ref.watch(isLoadingCotizaciones);
     late final cotizaciones;
 
@@ -55,17 +54,19 @@ class _ListaCotizacionesScreenState extends ConsumerState<ListaCotizacionesScree
           ? const Center(child: Text('No hay cotizaciones'))
           : RefreshIndicator(
               onRefresh: () => ref.read(cotizacionesProvider.notifier).cargarCotizaciones(),
-              child: ListView.builder(
-                itemCount: cotizaciones.length,
-                itemBuilder: (context, index) {
-                  final cotizacion = cotizaciones[index];
-                  return _CotizacionItem(
-                    cotizacion: cotizacion,
-                    onTap: () => _verCotizacion(context, ref, cotizacion),
-                    onDelete: () => _eliminarCotizacion(ref, cotizacion.id),
-                    onConvert: () => _convertirAVenta(ref, cotizacion.id)
-                  );
-                },
+              child: SafeArea(
+                child: ListView.builder(
+                  itemCount: cotizaciones.length,
+                  itemBuilder: (context, index) {
+                    final cotizacion = cotizaciones[index];
+                    return _CotizacionItem(
+                      cotizacion: cotizacion,
+                      onTap: () => _verCotizacion(context, ref, cotizacion),
+                      onDelete: () => _eliminarCotizacion(ref, cotizacion.id),
+                      onConvert: () => _convertirAVenta(ref, cotizacion.id)
+                    );
+                  },
+                ),
               ),
             ),
     );
@@ -186,6 +187,7 @@ class _CotizacionItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text('Cliente: ${cotizacion.clienteNombre ?? 'Sin cliente'}'),
+                Text('Vendedor: ${cotizacion.vendedor ?? 'No registrada'}'),
                 Text('Productos: ${cotizacion.productos.length}'),
                 Text('Total: \$${cotizacion.total.toStringAsFixed(2)}'),
                 Text('Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(cotizacion.fechaCreacion)}'),

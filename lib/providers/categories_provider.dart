@@ -49,4 +49,77 @@ class CategoriesNotifier extends StateNotifier<CatalogoCategorias> {
     }
     return null;
   }
+
+  Future<void> agregarCategoria(Categoria categoria) async {
+    try {
+      ref.read(isSavingCategories.notifier).state = true;
+
+      if (categoria.nombre.isEmpty) {
+        throw 'El nombre del cliente es obligatorio';
+      }
+
+      final response = await apiService.agregarCategoria(categoria.toJson());
+      final nuevaCategoria = Categoria.fromJson(response);
+      state = CatalogoCategorias(categorias: [...state.categorias, nuevaCategoria]);
+    } catch (e) {
+      throw e;
+    } finally {
+      ref.read(isSavingCategories.notifier).state = false;
+    }
+  }
+  Future<void> agregarSubcategoria(String categoriaId, Subcategoria subcategoria) async {
+    try {
+      ref.read(isSavingCategories.notifier).state = true;
+
+      if (subcategoria.nombre.isEmpty) {
+        throw 'El nombre del cliente es obligatorio';
+      }
+
+      final response = await apiService.agregarSubcategoria(categoriaId, subcategoria.toJson());
+      final nuevaSubcategoria = Subcategoria.fromJson(response);
+      state = CatalogoCategorias(
+        categorias: state.categorias.map((categoria) {
+          if (categoria.id == categoriaId) {
+            final subcategoriasNuevas = [...categoria.subcategorias, nuevaSubcategoria];
+            return categoria.copyWith(
+              subcategorias: subcategoriasNuevas
+            );
+          }
+          return categoria;
+        }).toList()
+      );
+    } catch (e) {
+      throw e;
+    } finally {
+      ref.read(isSavingCategories.notifier).state = false;
+    }
+  }
+
+  Future<void> eliminarCategoria(String categoriaId) async {
+    try {
+      await apiService.eliminarCategoria(categoriaId);
+      state = CatalogoCategorias(categorias: state.categorias.where((categoria) => categoria.id != categoriaId).toList());
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  Future<void> eliminarSubcategoria(String categoriaId, String subcategoriaId) async {
+    try {
+      await apiService.eliminarSubcategoria(categoriaId, subcategoriaId);
+      state = CatalogoCategorias(
+        categorias: state.categorias.map((categoria) {
+        if (categoria.id == categoriaId) {
+          final nuevasSubcategorias = categoria.subcategorias
+              .where((subcat) => subcat.id != subcategoriaId)
+              .toList();
+          return categoria.copyWith(subcategorias: nuevasSubcategorias);
+        }
+        return categoria;
+      }
+      ).toList());
+    } catch (e) {
+      throw Exception('Error al eliminar el cliente: $e');
+    }
+  }
 }

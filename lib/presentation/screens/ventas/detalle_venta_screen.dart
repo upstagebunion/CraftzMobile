@@ -57,19 +57,21 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
       appBar: CustomAppBar(
         title: Text('Venta #${venta.id.substring(0, 8)}'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInfoGeneral(venta),
-            const SizedBox(height: 20),
-            _buildProductosList(venta),
-            const SizedBox(height: 20),
-            _buildPagosList(venta),
-            const SizedBox(height: 20),
-            _buildAcciones(venta),
-          ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoGeneral(venta),
+              const SizedBox(height: 20),
+              _buildProductosList(venta),
+              const SizedBox(height: 20),
+              _buildPagosList(venta),
+              const SizedBox(height: 20),
+              _buildAcciones(venta),
+            ],
+          ),
         ),
       ),
     );
@@ -295,54 +297,57 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Agregar Pago'),
-          content: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: montoController,
-                    decoration: const InputDecoration(
-                      labelText: 'Monto',
-                      prefixText: '\$',
+          title: Text('Agregar Pago', style: Theme.of(context).textTheme.titleMedium),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: montoController,
+                      decoration: const InputDecoration(
+                        labelText: 'Monto',
+                        prefixText: '\$',
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Ingrese un monto';
+                        final monto = double.tryParse(value);
+                        if (monto == null) return 'Monto inválido';
+                        if (monto <= 0) return 'El monto debe ser mayor a cero';
+                        if (monto > venta.restante) return 'El monto excede el restante';
+                        return null;
+                      },
                     ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Ingrese un monto';
-                      final monto = double.tryParse(value);
-                      if (monto == null) return 'Monto inválido';
-                      if (monto <= 0) return 'El monto debe ser mayor a cero';
-                      if (monto > venta.restante) return 'El monto excede el restante';
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: razonController,
-                    decoration: const InputDecoration(
-                      labelText: 'Razón (opcional)',
+                    TextFormField(
+                      controller: razonController,
+                      decoration: const InputDecoration(
+                        labelText: 'Razón (opcional)',
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<MetodoPago>(
-                    value: metodoSeleccionado,
-                    items: MetodoPago.values.map((metodo) {
-                      return DropdownMenuItem(
-                        value: metodo,
-                        child: Text(_getMetodoPagoText(metodo)),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        metodoSeleccionado = value;
-                      }
-                    },
-                    decoration: const InputDecoration(
-                      labelText: 'Método de Pago',
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<MetodoPago>(
+                      value: metodoSeleccionado,
+                      items: MetodoPago.values.map((metodo) {
+                        return DropdownMenuItem(
+                          value: metodo,
+                          child: Text(_getMetodoPagoText(metodo), style: TextStyle(fontSize: 16),),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          metodoSeleccionado = value;
+                        }
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Método de Pago',
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

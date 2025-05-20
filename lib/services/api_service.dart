@@ -234,6 +234,81 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> agregarCategoria(Map<String, dynamic> categoria) async {
+    String? token = await getToken();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/categorias/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+      body: jsonEncode(categoria),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body)['categoria'];
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al crear cliente: $mensaje';
+    }
+  }
+
+  Future<Map<String, dynamic>> agregarSubcategoria(String categoriaId, Map<String, dynamic> subcategoria) async {
+    String? token = await getToken();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/categorias/$categoriaId/subcategorias'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+      body: jsonEncode(subcategoria),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body)['subcategoria'];
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al crear cliente: $mensaje';
+    }
+  }
+
+  Future<void> eliminarCategoria(String id) async {
+    String? token = await getToken();
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/categorias/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      final decodedBody = jsonDecode(response.body);
+      final String mensaje = decodedBody.containsKey('message') ? decodedBody['message'] : 'Error desconocido';
+      throw 'Error al eliminar cliente: $mensaje';
+    }
+  }
+
+  Future<void> eliminarSubcategoria(String categoriaId, String subcategoriaId) async {
+    String? token = await getToken();
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/categorias/subcategorias/$subcategoriaId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al eliminar cliente: $mensaje';
+    }
+  }
+
   Future<List<dynamic>> getExtras() async {
     String? token = await getToken();
 
@@ -542,15 +617,24 @@ class ApiService {
   }
 
   Future<dynamic> actualizarEstadoVenta(String ventaId, String estado) async {
-    final response = await http.patch(
-      Uri.parse('$baseUrl/api/ventas/actualizar-estado/$ventaId'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'estado': estado}),
-    );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+    try {
+      String? token = await getToken();
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/ventas/actualizar-estado/$ventaId'),
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': '$token',
+          },
+        body: jsonEncode({'estado': estado}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      throw Exception('Error al actualizar estado de venta');
+    } catch (error) {
+      throw Exception('Error al actualizar estado de venta');
     }
-    throw Exception('Error al actualizar estado de venta');
   }
 
   Future<dynamic> agregarPagoAVenta(String ventaId, Map<String, dynamic> pagoData) async {
@@ -597,6 +681,23 @@ class ApiService {
 
     final response = await http.patch(
       Uri.parse('$baseUrl/api/cotizaciones/convertir-a-venta/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode != 201) {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al eliminar cliente: $mensaje';
+    }
+  }
+
+  Future<void> revertirACotizacion(String id) async {
+    String? token = await getToken();
+
+    final response = await http.patch(
+      Uri.parse('$baseUrl/api/ventas/revertir/$id'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': '$token',

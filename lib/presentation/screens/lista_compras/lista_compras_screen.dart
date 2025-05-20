@@ -64,37 +64,39 @@ class ProductosFaltosStockScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MissingProductsController missingProductsController = MissingProductsController(catalogoCategorias: catalogoCategorias, catalogoProductos: catalogoProductos);
-    return ListView.builder(
-        itemCount: catalogoCategorias.categorias.length,
-        itemBuilder: (context, index) {
-          final categoria = catalogoCategorias.categorias[index];
-
-          final subcategoriasConProductos = categoria.subcategorias.where((subcategoria) {
-            final productosFiltrados = missingProductsController.obtenerProductosFaltosStockPorSubcategoria(subcategoria);
-            return productosFiltrados.isNotEmpty;
-          }).toList();
-
-          if (subcategoriasConProductos.isEmpty) {
-            return SizedBox.shrink(); // No mostrar si no hay elementos
-          }
-
-          return ExpansionTile(
-            title: Text(categoria.nombre),
-            children: subcategoriasConProductos.map((subcategoria) {
+    return SafeArea(
+      child: ListView.builder(
+          itemCount: catalogoCategorias.categorias.length,
+          itemBuilder: (context, index) {
+            final categoria = catalogoCategorias.categorias[index];
+      
+            final subcategoriasConProductos = categoria.subcategorias.where((subcategoria) {
               final productosFiltrados = missingProductsController.obtenerProductosFaltosStockPorSubcategoria(subcategoria);
-
-              return ExpansionTile(
-                title: Text(subcategoria.nombre),
-                children: productosFiltrados.map((producto) {
-                  return ProductoExpansionTile(
-                    producto: producto,
-                    usaTallas: subcategoria.usaTallas,
-                  );
-                }).toList(),
-              );
-            }).toList(),
-          );
-        });
+              return productosFiltrados.isNotEmpty;
+            }).toList();
+      
+            if (subcategoriasConProductos.isEmpty) {
+              return SizedBox.shrink(); // No mostrar si no hay elementos
+            }
+      
+            return ExpansionTile(
+              title: Text(categoria.nombre),
+              children: subcategoriasConProductos.map((subcategoria) {
+                final productosFiltrados = missingProductsController.obtenerProductosFaltosStockPorSubcategoria(subcategoria);
+      
+                return ExpansionTile(
+                  title: Text(subcategoria.nombre),
+                  children: productosFiltrados.map((producto) {
+                    return ProductoExpansionTile(
+                      producto: producto,
+                      usaTallas: subcategoria.usaTallas,
+                    );
+                  }).toList(),
+                );
+              }).toList(),
+            );
+          }),
+    );
   }
 }
 

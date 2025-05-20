@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import './producto_vendido_model.dart';
 
 enum EstadoVenta {
@@ -30,7 +29,7 @@ class Venta {
   final double restante;
   final DateTime fechaCreacion;
   final DateTime? fechaLiquidacion;
-  final String? origenCotizacion;
+  final String? vendedor;
 
   Venta({
     required this.id,
@@ -46,7 +45,7 @@ class Venta {
     required this.restante,
     DateTime? fechaCreacion,
     this.fechaLiquidacion,
-    this.origenCotizacion,
+    this.vendedor,
   }) : fechaCreacion = fechaCreacion ?? DateTime.now();
 
   factory Venta.fromJson(Map<String, dynamic> json) {
@@ -77,7 +76,9 @@ class Venta {
       fechaLiquidacion: json['fechaLiquidacion'] != null 
           ? DateTime.parse(json['fechaLiquidacion']) 
           : null,
-      origenCotizacion: json['origenCotizacion'],
+      vendedor: json['vendedor'] != null
+        ? json['vendedor']['nombre']
+        : null,
     );
   }
 
@@ -96,7 +97,7 @@ class Venta {
       'restante': restante,
       'fechaCreacion': fechaCreacion.toIso8601String(),
       'fechaLiquidacion': fechaLiquidacion?.toIso8601String(),
-      'origenCotizacion': origenCotizacion,
+      'vendedor': vendedor,
     };
   }
 
@@ -114,7 +115,7 @@ class Venta {
     double? restante,
     DateTime? fechaCreacion,
     DateTime? fechaLiquidacion,
-    String? origenCotizacion,
+    String? vendedor,
   }) {
     return Venta(
       id: id ?? this.id,
@@ -130,7 +131,7 @@ class Venta {
       restante: restante ?? this.restante,
       fechaCreacion: fechaCreacion ?? this.fechaCreacion,
       fechaLiquidacion: fechaLiquidacion ?? this.fechaLiquidacion,
-      origenCotizacion: origenCotizacion ?? this.origenCotizacion,
+      vendedor: vendedor ?? this.vendedor,
     );
   }
 }

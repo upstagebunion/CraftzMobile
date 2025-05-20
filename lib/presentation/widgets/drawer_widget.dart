@@ -1,9 +1,31 @@
 
 import '../../core/constants/app_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:craftz_app/core/utils/helpers.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
-class CustomDrawer extends StatelessWidget{
+class CustomDrawer extends StatefulWidget{
   const CustomDrawer({super.key});
+
+  @override
+  State<CustomDrawer> createState() => _CustomDrawerState();
+}
+
+class _CustomDrawerState extends State<CustomDrawer> {
+  String _version = 'Cargando...';
+
+   @override
+  void initState() {
+    super.initState();
+    _loadPackageInfo();
+  }
+
+  Future<void> _loadPackageInfo() async {
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    setState(() {
+      _version = packageInfo.version;
+    });
+  }
 
   @override
   Widget build(BuildContext context){
@@ -23,59 +45,81 @@ class CustomDrawer extends StatelessWidget{
           ),
           ListTile(
             leading: Icon(Icons.home, color: theme.colorScheme.primary),
-            title: Text('Home', style: theme.textTheme.bodyMedium),
+            title: Text('Home', style: theme.textTheme.bodyLarge),
             onTap: (){
               Navigator.pushReplacementNamed(context, AppRoutes.home);
             },
           ),
           ListTile(
             leading: Icon(Icons.inventory, color: theme.colorScheme.primary),
-            title: Text('Inventario', style: theme.textTheme.bodyMedium),
+            title: Text('Inventario', style: theme.textTheme.bodyLarge),
             onTap: (){
               Navigator.pushNamed(context, AppRoutes.productos);
             },
           ),
           ListTile(
             leading: Icon(Icons.shopping_bag_rounded, color: theme.colorScheme.primary),
-            title: Text('Lista de compras', style: theme.textTheme.bodyMedium),
+            title: Text('Lista de compras', style: theme.textTheme.bodyLarge),
             onTap: (){
               Navigator.pushNamed(context, AppRoutes.listaCompras);
             },
           ),
           ListTile(
             leading: Icon(Icons.monetization_on, color: theme.colorScheme.primary),
-            title: Text('Cotización', style: theme.textTheme.bodyMedium),
+            title: Text('Cotización', style: theme.textTheme.bodyLarge),
             onTap: (){
               Navigator.pushNamed(context, AppRoutes.cotizaciones);
             },
           ),
           ListTile(
             leading: Icon(Icons.sell, color: theme.colorScheme.primary),
-            title: Text('Ventas', style: theme.textTheme.bodyMedium),
+            title: Text('Ventas', style: theme.textTheme.bodyLarge),
             onTap: (){
               Navigator.pushNamed(context, AppRoutes.ventas);
             },
           ),
           ListTile(
+            leading: Icon(Icons.category, color: theme.colorScheme.primary),
+            title: Text('Categorias', style: theme.textTheme.bodyLarge),
+            onTap: (){
+              Navigator.pushNamed(context, AppRoutes.categorias);
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.face, color: theme.colorScheme.primary),
-            title: Text('Clientes', style: theme.textTheme.bodyMedium),
+            title: Text('Clientes', style: theme.textTheme.bodyLarge),
             onTap: (){
               Navigator.pushNamed(context, AppRoutes.clientes);
             },
           ),
           ListTile(
             leading: Icon(Icons.add_shopping_cart, color: theme.colorScheme.primary),
-            title: Text('Extras', style: theme.textTheme.bodyMedium),
+            title: Text('Extras', style: theme.textTheme.bodyLarge),
             onTap: (){
               Navigator.pushNamed(context, AppRoutes.extras);
             },
           ),
           ListTile(
             leading: Icon(Icons.settings, color: theme.colorScheme.primary),
-            title: Text('Parametros de costo', style: theme.textTheme.bodyMedium),
+            title: Text('Parametros de costo', style: theme.textTheme.bodyLarge),
             onTap: (){
               Navigator.pushNamed(context, AppRoutes.parametrosCostos);
             },
+          ),
+          ListTile(
+            leading: Icon(Icons.output_rounded, color: theme.colorScheme.primary),
+            title: Text('Cerrar Sesión', style: theme.textTheme.bodyLarge),
+            onTap: (){
+              AuthHelper.logout(context);
+            },
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'Craftz Admin App - Versión: $_version',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ),
         ],
       ),

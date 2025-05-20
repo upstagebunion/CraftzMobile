@@ -426,11 +426,6 @@ class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, _extrasActuales),
-          style: TextButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            padding: EdgeInsets.symmetric(horizontal: 20.0)
-          ),
           child: const Text('Cerrar', style: TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],

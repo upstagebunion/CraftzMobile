@@ -7,3 +7,4 @@ export '../../presentation/screens/extras/extras_screen.dart';
 export '../../presentation/screens/parametros/parametrosCostosScreen.dart';
 export 'package:craftz_app/presentation/screens/clientes/clientes_screen.dart';
 export 'package:craftz_app/presentation/screens/ventas/ventas_screen.dart';
+export 'package:craftz_app/presentation/screens/categorias/categorias_screen.dart';

@@ -85,7 +85,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Eras',
         textTheme: TextTheme(
           bodySmall: TextStyle(fontSize:12, color:Color(0xff292662), fontWeight: FontWeight.w500),
-          bodyMedium: TextStyle(fontSize:14, color:Color(0xff292662), fontWeight: FontWeight.w500),
+          bodyMedium: TextStyle(fontSize:16, color:Color(0xff292662), fontWeight: FontWeight.w500),
           bodyLarge: TextStyle(fontSize:16, color:Color(0xff292662), fontWeight: FontWeight.w600),
           titleSmall: TextStyle(fontSize:18, color:Color(0xff292662), fontWeight: FontWeight.w600),
           titleMedium: TextStyle(fontSize:19, color:Color(0xff292662), fontWeight: FontWeight.w900),
@@ -93,6 +93,22 @@ class MyApp extends StatelessWidget {
           headlineLarge: TextStyle(fontSize:25, color:Color.fromARGB(255, 255, 255, 255), fontWeight: FontWeight.w900),
           headlineMedium: TextStyle(fontSize:25, color:Color.fromARGB(255, 255, 255, 255), fontWeight: FontWeight.w800),
           headlineSmall: TextStyle(fontSize:20, color:Color.fromARGB(255, 255, 255, 255), fontWeight: FontWeight.w700),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            backgroundColor: Color(0xff292662),
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            textStyle: TextStyle(fontFamily: 'Eras', fontSize: 12, fontWeight: FontWeight.w600)
+          )
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xff292662),
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            textStyle: TextStyle(fontFamily: 'Eras', fontWeight: FontWeight.w600)
+          )
         ),
       ),
       initialRoute: initialRoute,

@@ -14,7 +14,7 @@ class Cotizacion {
   final bool ventaEnLinea;
   final DateTime fechaCreacion;
   final DateTime expira;
-  final String? ventaId; // Si se convirtió en venta
+  final String? vendedor; // Si se convirtió en venta
 
   Cotizacion({
     required this.id,
@@ -27,7 +27,7 @@ class Cotizacion {
     this.ventaEnLinea = false,
     DateTime? fechaCreacion,
     DateTime? expira,
-    this.ventaId,
+    this.vendedor,
   }) : 
     fechaCreacion = fechaCreacion ?? DateTime.now(),
     expira = expira ?? DateTime.now().add(const Duration(days: 15));
@@ -52,7 +52,7 @@ class Cotizacion {
     bool? ventaEnLinea,
     DateTime? fechaCreacion,
     DateTime? expira,
-    String? ventaId,
+    String? venta,
   }) {
     return Cotizacion(
       id: id ?? this.id,
@@ -65,7 +65,7 @@ class Cotizacion {
       ventaEnLinea: ventaEnLinea ?? this.ventaEnLinea,
       fechaCreacion: fechaCreacion ?? this.fechaCreacion,
       expira: expira ?? this.expira,
-      ventaId: ventaId ?? this.ventaId,
+      vendedor: vendedor ?? this.vendedor,
     );
   }
 
@@ -81,7 +81,7 @@ class Cotizacion {
       'ventaEnLinea': ventaEnLinea,
       'fechaCreacion': fechaCreacion.toIso8601String(),
       'expira': expira.toIso8601String(),
-      'ventaId': ventaId,
+      'vendedor': vendedor,
     };
   }
 
@@ -101,7 +101,9 @@ class Cotizacion {
       ventaEnLinea: json['ventaEnLinea'] ?? false,
       fechaCreacion: DateTime.parse(json['fechaCreacion']),
       expira: DateTime.parse(json['expira']),
-      ventaId: json['ventaId'],
+      vendedor: json['vendedor'] != null
+        ? json['vendedor']['nombre']
+        : null,
     );
   }
 }

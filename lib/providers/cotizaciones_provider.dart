@@ -51,7 +51,6 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
   }
 
   Future<void> agregarCotizacion(Cotizacion cotizacion) async {
-    //TODO: verificar coso de excepcion, aunque en la app parece que funciona bien xd
     try {
       final cotizacionTempId = cotizacion.id;
       final response = await apiService.agregarCotizacion(cotizacion.toJson());

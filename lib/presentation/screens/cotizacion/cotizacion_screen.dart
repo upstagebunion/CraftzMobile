@@ -81,13 +81,13 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
       );
     } 
     
-    return _cotizacionLocal == null 
-    ? const SizedBox.shrink()
-    : Scaffold(
+    return Scaffold(
       appBar: CustomAppBar(
         title: widget.nuevaCotizacion 
           ? Text('Nueva Cotización')
-          : Text('Cotizacion ${_cotizacionLocal!.clienteNombre}'),
+          : _cotizacionLocal == null
+            ? Text('Cotizacion ...')
+            : Text('Cotizacion ${_cotizacionLocal!.clienteNombre ?? 'sin cliente'}'),
         actions: [
           if (_cotizacionLocal != null && _cotizacionLocal!.cliente == '')
           IconButton(

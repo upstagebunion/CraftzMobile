@@ -24,4 +24,16 @@ class Categoria {
       'subcategorias': subcategorias.map((subcategoria) => subcategoria.toJson()).toList(),
     };
   }
+
+  Categoria copyWith({
+    String? id,
+    String? nombre,
+    List<Subcategoria>? subcategorias
+  }) {
+    return Categoria(
+      id: id ?? this.id,
+      nombre: nombre ?? this.nombre,
+      subcategorias: subcategorias ?? this.subcategorias
+    );
+  }
 }

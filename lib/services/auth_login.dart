@@ -26,7 +26,9 @@ class ApiService {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       if (decodedResponse.containsKey('token')){
         await prefs.setString('token', decodedResponse['token']);
-        print('Login Exitoso, token: ${decodedResponse['token']}');
+        if (decodedResponse.containsKey('usuario')) {
+          await prefs.setString('userData', jsonEncode(decodedResponse['usuario']));
+        }
       } else{
         throw CustomException('Respuesta invalida del servidor. ${response.body}');
       }
@@ -35,6 +37,46 @@ class ApiService {
     } else {
       Map<String, dynamic> errorResponse = jsonDecode(response.body);
       throw CustomException('Error al iniciar sesion: ${errorResponse['message']}');
+    }
+  }
+
+  Future<void> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final Map<String, dynamic> body = {
+      "nombre": name,
+      "correo": email,
+      "password": password,
+    };
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/register'),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 201) {
+      Map<String, dynamic> decodedResponse = jsonDecode(response.body);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (decodedResponse.containsKey('token')) {
+        await prefs.setString('token', decodedResponse['token']);
+
+        if (decodedResponse.containsKey('usuario')) {
+          await prefs.setString('userData', jsonEncode(decodedResponse['usuario']));
+        }
+      } else {
+        throw Exception('Respuesta inválida del servidor. ${response.body}');
+      }
+    } else if (response.statusCode == 400) {
+      Map<String, dynamic> errorResponse = jsonDecode(response.body);
+      throw Exception(errorResponse['message'] ?? 'El correo ya está registrado.');
+    } else {
+      Map<String, dynamic> errorResponse = jsonDecode(response.body);
+      throw Exception('Error al registrar: ${errorResponse['message']}');
     }
   }
 

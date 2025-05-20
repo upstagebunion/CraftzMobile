@@ -89,4 +89,15 @@ class VentasNotifier extends StateNotifier<CatalogoVentas> {
       throw Exception('Error al liquidar venta: $e');
     }
   }
+
+  Future<void> revertirVentaACotizacion(String ventaId) async {
+    try {
+      await apiService.revertirACotizacion(ventaId);
+      state = CatalogoVentas(
+        ventas: state.ventas.where((v) => v.id != ventaId).toList()
+      );
+    } catch (e) {
+      throw Exception('Error al eliminar cotización: $e');
+    }
+  }
 }
