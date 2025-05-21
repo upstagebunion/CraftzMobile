@@ -57,7 +57,7 @@ class _VentasScreenState extends ConsumerState<VentasScreen>{
 
   void _revertirVenta(WidgetRef ref, String id) async {
     try {
-      await ref.read(ventasProvider.notifier)..revertirVentaACotizacion(id);
+      await ref.read(ventasProvider.notifier).revertirVentaACotizacion(id);
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Venta actualizada exitosamente')
@@ -66,7 +66,7 @@ class _VentasScreenState extends ConsumerState<VentasScreen>{
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:  Text('Error al actualizar la venta')
+          content:  Text('Error al actualizar la venta: $error')
         ),
       );
     }

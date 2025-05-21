@@ -1,4 +1,8 @@
 
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../core/constants/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:craftz_app/core/utils/helpers.dart';
@@ -13,11 +17,21 @@ class CustomDrawer extends StatefulWidget{
 
 class _CustomDrawerState extends State<CustomDrawer> {
   String _version = 'Cargando...';
+  Map<String, dynamic> _userData = {};
+  bool _isLoading = true;
 
-   @override
+  @override
   void initState() {
     super.initState();
-    _loadPackageInfo();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    await _loadPackageInfo();
+    await _loadUserData();
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _loadPackageInfo() async {
@@ -27,8 +41,30 @@ class _CustomDrawerState extends State<CustomDrawer> {
     });
   }
 
+  Future<void> _loadUserData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userDataString = prefs.getString('userData');
+    if (userDataString != null) {
+      setState(() {
+        _userData = jsonDecode(userDataString);
+      });
+    }
+  }
+
+  bool get _isAdmin {
+    return _userData['rol']?.toLowerCase() == 'admin';
+  }
+
   @override
   Widget build(BuildContext context){
+    if (_isLoading) {
+      return const Drawer(
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     final theme = Theme.of(context);
     return Drawer(
       child: ListView(
@@ -92,20 +128,22 @@ class _CustomDrawerState extends State<CustomDrawer> {
               Navigator.pushNamed(context, AppRoutes.clientes);
             },
           ),
-          ListTile(
-            leading: Icon(Icons.add_shopping_cart, color: theme.colorScheme.primary),
-            title: Text('Extras', style: theme.textTheme.bodyLarge),
-            onTap: (){
-              Navigator.pushNamed(context, AppRoutes.extras);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.settings, color: theme.colorScheme.primary),
-            title: Text('Parametros de costo', style: theme.textTheme.bodyLarge),
-            onTap: (){
-              Navigator.pushNamed(context, AppRoutes.parametrosCostos);
-            },
-          ),
+          if (_isAdmin) ...[
+            ListTile(
+              leading: Icon(Icons.add_shopping_cart, color: theme.colorScheme.primary),
+              title: Text('Extras', style: theme.textTheme.bodyLarge),
+              onTap: (){
+                Navigator.pushNamed(context, AppRoutes.extras);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings, color: theme.colorScheme.primary),
+              title: Text('Parametros de costo', style: theme.textTheme.bodyLarge),
+              onTap: (){
+                Navigator.pushNamed(context, AppRoutes.parametrosCostos);
+              },
+            ),
+          ],
           ListTile(
             leading: Icon(Icons.output_rounded, color: theme.colorScheme.primary),
             title: Text('Cerrar Sesión', style: theme.textTheme.bodyLarge),

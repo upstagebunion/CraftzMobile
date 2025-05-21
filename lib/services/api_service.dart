@@ -706,7 +706,7 @@ class ApiService {
 
     if (response.statusCode != 201) {
       final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
-      throw 'Error al eliminar cliente: $mensaje';
+      throw '$mensaje';
     }
   }
 }

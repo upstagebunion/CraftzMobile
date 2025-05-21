@@ -97,7 +97,7 @@ class VentasNotifier extends StateNotifier<CatalogoVentas> {
         ventas: state.ventas.where((v) => v.id != ventaId).toList()
       );
     } catch (e) {
-      throw Exception('Error al eliminar cotización: $e');
+      throw '$e';
     }
   }
 }

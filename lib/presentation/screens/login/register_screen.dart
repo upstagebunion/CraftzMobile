@@ -114,7 +114,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     filled: true,
                     fillColor:Colors.grey[400] 
                   ),
-                  style: fonts.titleLarge,
+                  style: fonts.bodyLarge,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor ingresa tu nombre';
@@ -137,7 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     filled: true,
                     fillColor: Colors.grey[400],
                   ),
-                  style: fonts.titleLarge,
+                  style: fonts.bodyLarge,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor ingresa tu correo';
@@ -174,7 +174,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     filled: true,
                     fillColor: Colors.grey[400],
                   ),
-                  style: fonts.titleLarge,
+                  style: fonts.bodyLarge,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor ingresa tu contraseña';
@@ -211,7 +211,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     filled: true,
                     fillColor: Colors.grey[400],
                   ),
-                  style: fonts.titleLarge,
+                  style: fonts.bodyLarge,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor confirma tu contraseña';
