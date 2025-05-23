@@ -15,6 +15,7 @@ class CalculadorCostos {
     required String subcategoriaId,
     required List<ExtraCotizado> extras,
     required double precioBase,
+    required descuento,
   }) async {
     
     // 1. Obtener los parámetros fijos que aplican a esta subcategoría
@@ -62,7 +63,14 @@ class CalculadorCostos {
 
     // 7. Redondear al siguiente múltiplo de 10 menos 1 (ej: 147.25 → 149.00)
     precioCalculado = (precioCalculado / 10).ceil() * 10 - 1;
+
+    if (descuento.tipo == 'porcentaje') {
+      precioCalculado = precioCalculado * (1 - descuento.valor / 100);
+    } else {
+      precioCalculado = precioCalculado - descuento.valor;
+    }
     
+    precioCalculado = double.parse(precioCalculado.toStringAsFixed(2));
     return precioCalculado;
   }
 

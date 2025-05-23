@@ -95,8 +95,8 @@ class _VentaCard extends StatelessWidget {
               onReverse();
             },
             backgroundColor: colors.primary,
-            icon: Icons.point_of_sale,
-            label: 'Convertir a venta',
+            icon: Icons.currency_exchange,
+            label: 'Revertir a cotización',
           ),
         ]
       ),
@@ -110,6 +110,7 @@ class _VentaCard extends StatelessWidget {
               Text('Cliente: ${venta.clienteNombre ?? 'Sin nombre'}'),
               Text('Vendedor: ${venta.vendedor ?? 'Sin registro'}'),
               Text('Total: \$${venta.total.toStringAsFixed(2)}'),
+              Text('${venta.liquidado ? 'Venta liquidada' : 'Venta por liquidar'}'),
               Text('Estado: ${_getEstadoText(venta.estado)}'),
               Text('Restante: \$${venta.restante.toStringAsFixed(2)}'),
             ],
@@ -136,8 +137,6 @@ class _VentaCard extends StatelessWidget {
         return 'Confirmado';
       case EstadoVenta.preparado:
         return 'Preparado';
-      case EstadoVenta.liquidado:
-        return 'Liquidado';
       case EstadoVenta.entregado:
         return 'Entregado';
       case EstadoVenta.devuelto:

@@ -4,7 +4,6 @@ enum EstadoVenta {
   pendiente,
   confirmado,
   preparado,
-  liquidado,
   entregado,
   devuelto
 }
@@ -25,6 +24,7 @@ class Venta {
   final Descuento? descuentoGlobal;
   final bool ventaEnLinea;
   final EstadoVenta estado;
+  final bool liquidado;
   final List<Pago> pagos;
   final double restante;
   final DateTime fechaCreacion;
@@ -41,6 +41,7 @@ class Venta {
     this.descuentoGlobal,
     this.ventaEnLinea = false,
     this.estado = EstadoVenta.pendiente,
+    this.liquidado = false,
     this.pagos = const [],
     required this.restante,
     DateTime? fechaCreacion,
@@ -66,6 +67,7 @@ class Venta {
         (e) => e.name == json['estado'],
         orElse: () => EstadoVenta.pendiente,
       ),
+      liquidado: json['liquidado'] ?? false,
       pagos: (json['pagos'] as List<dynamic>?)
           ?.map((p) => Pago.fromJson(p))
           .toList() ?? [],
@@ -93,6 +95,7 @@ class Venta {
       'descuentoGlobal': descuentoGlobal?.toJson(),
       'ventaEnLinea': ventaEnLinea,
       'estado': estado.name,
+      'liquidado': liquidado,
       'pagos': pagos.map((p) => p.toJson()).toList(),
       'restante': restante,
       'fechaCreacion': fechaCreacion.toIso8601String(),
@@ -111,6 +114,7 @@ class Venta {
     Descuento? descuentoGlobal,
     bool? ventaEnLinea,
     EstadoVenta? estado,
+    bool? liquidado,
     List<Pago>? pagos,
     double? restante,
     DateTime? fechaCreacion,
@@ -127,6 +131,7 @@ class Venta {
       descuentoGlobal: descuentoGlobal ?? this.descuentoGlobal,
       ventaEnLinea: ventaEnLinea ?? this.ventaEnLinea,
       estado: estado ?? this.estado,
+      liquidado: liquidado ?? this.liquidado,
       pagos: pagos ?? this.pagos,
       restante: restante ?? this.restante,
       fechaCreacion: fechaCreacion ?? this.fechaCreacion,

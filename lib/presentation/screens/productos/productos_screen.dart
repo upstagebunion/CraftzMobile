@@ -216,18 +216,16 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                                     children: [
                                                       IconButton(
                                                         icon: Icon(Icons.remove),
-                                                        onPressed: () {
-                                                          setState(() {
-                                                            talla.stock = talla.stock > 0 ? talla.stock - 1 : talla.stock;
-                                                          });
-                                                        },
+                                                        onPressed: talla.stock > 0 
+                                                        ? () {
+                                                            ref.read(productosProvider.notifier).actualizarStock(producto.id, variante.id, color.id, talla.id, -1);
+                                                          }
+                                                        : null,
                                                       ),
                                                       IconButton(
                                                         icon: Icon(Icons.add),
                                                         onPressed: () {
-                                                          setState(() {
-                                                            talla.stock++;
-                                                          });
+                                                          ref.read(productosProvider.notifier).actualizarStock(producto.id, variante.id, color.id, talla.id, 1);
                                                         },
                                                       ),
                                                     ],
@@ -243,18 +241,16 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                                                 children: [
                                                   IconButton(
                                                     icon: Icon(Icons.remove),
-                                                    onPressed: () {
-                                                      setState(() {
-                                                        color.stock = color.stock! > 0 ? color.stock! - 1 : color.stock!;
-                                                      });
-                                                    },
+                                                    onPressed: color.stock! > 0 
+                                                      ? () {
+                                                        ref.read(productosProvider.notifier).actualizarStock(producto.id, variante.id, color.id, null, -1);
+                                                        }
+                                                      : null,
                                                   ),
                                                   IconButton(
                                                     icon: Icon(Icons.add),
                                                     onPressed: () {
-                                                      setState(() {
-                                                        color.stock = color.stock! + 1;
-                                                      });
+                                                      ref.read(productosProvider.notifier).actualizarStock(producto.id, variante.id, color.id, null, 1);
                                                     },
                                                   ),
                                                 ],

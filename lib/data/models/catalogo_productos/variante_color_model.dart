@@ -6,8 +6,9 @@ class Color {
   final List<Talla>? tallas;
   int? stock;
   final double? costo;
+  bool modificado;
 
-  Color({required this.id, required this.color, this.tallas, this.stock, this.costo});
+  Color({required this.id, required this.color, this.tallas, this.stock, this.costo, this.modificado = false});
 
   factory Color.fromJson(Map<String, dynamic> json) {
     return Color(
@@ -33,13 +34,17 @@ class Color {
     };
   }
 
-  Color copyWith({int? stock, List<Talla>? tallas, String? color, double? costo}) {
+  Color copyWith({int? stock, List<Talla>? tallas, String? color, double? costo, bool? modificado,}) {
+    final tallasModificadas = tallas?.any((t) => t.modificado) ?? 
+                           this.tallas?.any((t) => t.modificado) ?? false;
     return Color(
       id: this.id,
       color: color ?? this.color,
       tallas: tallas ?? this.tallas,
       stock: stock ?? this.stock,
       costo: costo ?? this.costo,
+      modificado: modificado ?? tallasModificadas || 
+                  (stock != null && stock != this.stock),
       );
   }
 }

@@ -50,7 +50,7 @@ class VentasNotifier extends StateNotifier<CatalogoVentas> {
         }).toList()
       );
     } catch (e) {
-      throw Exception('Error al actualizar estado de venta: $e');
+      throw '$e';
     }
   }
 

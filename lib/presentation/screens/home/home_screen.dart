@@ -1,5 +1,6 @@
 import 'package:craftz_app/services/reportes_services.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../widgets/drawer_widget.dart';
 import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 import 'package:file_saver/file_saver.dart';
@@ -74,12 +75,36 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _generarReporteInventario() async {
+    try {
+      final filtros = await _mostrarDialogoFiltros(context);
+      if (filtros == null) return; // Usuario canceló
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Generando reporte... Por favor espere.'), duration: Duration(seconds: 5)),
+      );
+      
+      final pdfBytes = await reporteService.obtenerReporteInventario(filtros);
+      
+      final file = await fileSaver.saveFile(
+        name: 'reporte_inventario_${DateFormat('yyyyMMdd').format(DateTime.now())}',
+        bytes: pdfBytes,
+        ext: 'pdf',
+        mimeType: MimeType.pdf,
+      );
+      
+      await OpenFilex.open(file);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al generar reporte: ${e.toString()}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = Theme.of(context).colorScheme;
-
-    
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -175,38 +200,173 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
           
                 // Botones de reportes
-                Row(
-                  children: [
-                    Expanded(
-                      child: _ReportButton(
-                        label: 'Diario',
-                        icon: Icons.calendar_view_day,
-                        onPressed: () => _generarReporte('diario'),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 100,
+                        child: _ReportButton(
+                          label: 'Diario',
+                          icon: Icons.calendar_view_day,
+                          onPressed: () => _generarReporte('diario'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _ReportButton(
-                        label: 'Semanal',
-                        icon: Icons.calendar_view_week,
-                        onPressed: () => _generarReporte('semanal'),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 100,
+                        child: _ReportButton(
+                          label: 'Semanal',
+                          icon: Icons.calendar_view_week,
+                          onPressed: () => _generarReporte('semanal'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _ReportButton(
-                        label: 'Mensual',
-                        icon: Icons.calendar_today,
-                        onPressed: () => _generarReporte('mensual'),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 100,
+                        child: _ReportButton(
+                          label: 'Mensual',
+                          icon: Icons.calendar_today,
+                          onPressed: () => _generarReporte('mensual'),
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 100,
+                        child: _ReportButton(
+                          label: 'Inventario',
+                          icon: Icons.inventory,
+                          onPressed: _generarReporteInventario,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Future<Map<String, dynamic>?> _mostrarDialogoFiltros(BuildContext context) async {
+    DateTimeRange? rangoFechas;
+    String? tipoMovimiento;
+    List<String> motivosSeleccionados = [];
+
+    return showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Filtrar Reporte de Inventario'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Selector de rango de fechas
+                ListTile(
+                  leading: const Icon(Icons.date_range),
+                  title: const Text('Rango de fechas'),
+                  subtitle: Text(rangoFechas != null
+                      ? '${DateFormat('dd/MM/yyyy').format(rangoFechas!.start)} - ${DateFormat('dd/MM/yyyy').format(rangoFechas!.end)}'
+                      : 'Seleccionar'),
+                  onTap: () async {
+                    final picked = await showDateRangePicker(
+                      context: context,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                      initialDateRange: rangoFechas,
+                    );
+                    if (picked != null) {
+                      rangoFechas = picked;
+                      (context as Element).markNeedsBuild();
+                    }
+                  },
+                ),
+                
+                // Selector de tipo de movimiento
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    labelText: 'Tipo de movimiento',
+                    border: OutlineInputBorder(),
+                  ),
+                  value: tipoMovimiento,
+                  items: [
+                    const DropdownMenuItem(
+                      value: null,
+                      child: Text('Todos los movimientos'),
+                    ),
+                    const DropdownMenuItem(
+                      value: 'entrada',
+                      child: Text('Entradas'),
+                    ),
+                    const DropdownMenuItem(
+                      value: 'salida',
+                      child: Text('Salidas'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    tipoMovimiento = value;
+                  },
+                ),
+                
+                const SizedBox(height: 16),
+                const Text('Motivos:', style: TextStyle(fontWeight: FontWeight.bold)),
+                
+                // Selector múltiple de motivos
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    'compra',
+                    'venta',
+                    'ajuste',
+                    'devolucion',
+                    'perdida',
+                  ].map((motivo) {
+                    return FilterChip(
+                      label: Text(motivo),
+                      selected: motivosSeleccionados.contains(motivo),
+                      onSelected: (selected) {
+                        if (selected) {
+                          motivosSeleccionados.add(motivo);
+                        } else {
+                          motivosSeleccionados.remove(motivo);
+                        }
+                        (context as Element).markNeedsBuild();
+                      },
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (rangoFechas == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Seleccione un rango de fechas')),
+                  );
+                  return;
+                }
+                
+                Navigator.pop(context, {
+                  'fechaInicio': rangoFechas!.start.toIso8601String(),
+                  'fechaFin': rangoFechas!.end.toIso8601String(),
+                  'tipoMovimiento': tipoMovimiento,
+                  'motivos': motivosSeleccionados,
+                });
+              },
+              child: const Text('Generar Reporte'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

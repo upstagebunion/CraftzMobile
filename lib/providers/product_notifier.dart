@@ -49,7 +49,7 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
-  void actualizarStockTalla(String productoId, String varianteId, String colorId, String tallaId, int cantidad) {
+  void actualizarStock(String productoId, String varianteId, String colorId, String? tallaId, int cantidad) {
     final productoIndex = state.productos.indexWhere((producto) => producto.id == productoId);
     if (productoIndex == -1) return;
 
@@ -60,27 +60,43 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
         final updatedColores = variante.colores.map((color) {
           if (color.id == colorId) {
             if (color.stock != null) {
-              return color.copyWith(stock: color.stock! + cantidad);
+              // Producto sin tallas - modificar stock directo
+              return color.copyWith(
+                stock: color.stock! + cantidad,
+                modificado: true
+              );
             } else {
+              // Producto con tallas
               final updatedTallas = color.tallas!.map((talla) {
                 if (talla.id == tallaId) {
-                  return talla.copyWith(stock: talla.stock + cantidad);
+                  return talla.copyWith(
+                    stock: talla.stock + cantidad,
+                    modificado: true
+                  );
                 }
                 return talla;
               }).toList();
-              return color.copyWith(tallas: updatedTallas);
+              return color.copyWith(
+                tallas: updatedTallas,
+                modificado: true
+              );
             }
-          } else {
-            return color.copyWith();
           }
+          return color;
         }).toList();
 
-        return Variante(id: variante.id, tipo: variante.tipo, colores: updatedColores);
+        return variante.copyWith(
+          colores: updatedColores,
+          modificado: true
+        );
       }
       return variante;
     }).toList();
 
-    final updatedProducto = producto.copyWith(variantes: updatedVariantes);
+    final updatedProducto = producto.copyWith(
+      variantes: updatedVariantes,
+      modificado: true
+    );
 
     final updatedCatalogo = List<Producto>.from(state.productos);
     updatedCatalogo[productoIndex] = updatedProducto;
@@ -91,15 +107,34 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
   Future<void> guardarCambios() async {
     try {
       ref.read(isSavingProvider.notifier).state = true;
+      
+      // Obtener solo productos modificados
+      final productosModificados = state.productos
+          .where((p) => p.modificado)
+          .map((p) => p.toJson())
+          .toList();
 
-      // Obtener el catálogo actual del estado
-      final catalogoActual = state;
-
-      // Convertir el catálogo a JSON
-      final catalogoJson = catalogoActual.toJson();
-
-      // Enviar el JSON al backend
-      await apiService.actualizarProductos(catalogoJson);
+      if (productosModificados.isNotEmpty) {
+        await apiService.actualizarProductos(productosModificados);
+        
+        // Resetear banderas después de guardar
+        final productosActualizados = state.productos.map((p) {
+          return p.copyWith(
+            modificado: false,
+            variantes: p.variantes?.map((v) => v.copyWith(
+              modificado: false,
+              colores: v.colores.map((c) => c.copyWith(
+                modificado: false,
+                tallas: c.tallas?.map((t) => t.copyWith(
+                  modificado: false
+                )).toList()
+              )).toList()
+            )).toList()
+          );
+        }).toList();
+        
+        state = CatalogoProductos(productos: productosActualizados);
+      }
     } catch (e) {
       throw e;
     } finally {

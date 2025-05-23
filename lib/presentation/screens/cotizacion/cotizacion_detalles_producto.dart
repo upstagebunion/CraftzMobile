@@ -102,7 +102,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
       precioBase = colorSeleccionado!.costo ?? 0;
     }
 
-    final precioNeto = await calculador.calcularPrecioFinal(subcategoriaId: widget.producto.subcategoria, extras: [], precioBase: precioBase);
+    final precioNeto = await calculador.calcularPrecioFinal(subcategoriaId: widget.producto.subcategoria, extras: [], precioBase: precioBase, descuento: []);
 
     final productoCotizado = ProductoCotizado(
       productoRef: widget.producto.id,

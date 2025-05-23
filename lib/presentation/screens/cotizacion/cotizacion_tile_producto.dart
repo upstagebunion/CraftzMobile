@@ -328,6 +328,7 @@ class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
       subcategoriaId: widget.subcategoriaId,
       extras: nuevosExtras,
       precioBase: widget.producto.precioBase,
+      descuento: widget.producto.descuento
     );
     
     setState(() {
@@ -343,6 +344,7 @@ class _DialogoExtrasState extends ConsumerState<DialogoExtras> {
       subcategoriaId: widget.subcategoriaId,
       extras: nuevosExtras,
       precioBase: widget.producto.precioBase,
+      descuento: widget.producto.descuento,
     );
     
     setState(() {

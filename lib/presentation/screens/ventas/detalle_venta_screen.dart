@@ -104,6 +104,11 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                 fontWeight: FontWeight.bold,
               )),
             const SizedBox(height: 8),
+            Text('${venta.liquidado ? 'Venta liquidada' : 'Venta por liquidar'}',
+              style: TextStyle(
+                color: venta.liquidado ? Colors.lightGreen[600] : Colors.orange[600],
+                fontWeight: FontWeight.bold,
+              )),
             Text('Estado: ${_getEstadoText(venta.estado)}',
               style: TextStyle(
                 color: _getEstadoColor(venta.estado),
@@ -215,7 +220,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
           children: [
             const Text('Acciones', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            if (venta.estado != EstadoVenta.liquidado && venta.restante > 0)
+            if (!venta.liquidado && venta.restante > 0)
               ElevatedButton.icon(
                 icon: const Icon(Icons.payment),
                 label: const Text('Agregar Pago'),
@@ -225,7 +230,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                 ),
               ),
             const SizedBox(height: 8),
-            if (venta.estado != EstadoVenta.liquidado && venta.restante == 0)
+            if (!venta.liquidado && venta.restante == 0)
               ElevatedButton.icon(
                 icon: const Icon(Icons.check_circle),
                 label: const Text('Liquidar Venta'),
@@ -427,7 +432,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
       case EstadoVenta.pendiente: return 'Pendiente';
       case EstadoVenta.confirmado: return 'Confirmado';
       case EstadoVenta.preparado: return 'Preparado';
-      case EstadoVenta.liquidado: return 'Liquidado';
       case EstadoVenta.entregado: return 'Entregado';
       case EstadoVenta.devuelto: return 'Devuelto';
     }
@@ -438,7 +442,6 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
       case EstadoVenta.pendiente: return Colors.orange;
       case EstadoVenta.confirmado: return Colors.blue;
       case EstadoVenta.preparado: return Colors.purple;
-      case EstadoVenta.liquidado: return Colors.green;
       case EstadoVenta.entregado: return Colors.teal;
       case EstadoVenta.devuelto: return Colors.red;
     }

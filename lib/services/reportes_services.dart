@@ -34,6 +34,37 @@ class ReporteService {
     }
   }
 
+  Future<Uint8List> obtenerReporteInventario(Map<String, dynamic> filtros) async {
+    try {
+      String? token = await getToken();
+      
+      // Construir query parameters
+      final params = {
+        'fechaInicio': filtros['fechaInicio'],
+        'fechaFin': filtros['fechaFin'],
+        if (filtros['tipoMovimiento'] != null) 
+          'tipoMovimiento': filtros['tipoMovimiento'],
+        if (filtros['motivos'] != null && filtros['motivos'].isNotEmpty)
+          'motivos': filtros['motivos'].join(','),
+      };
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/reportes/inventario/personalizado').replace(
+          queryParameters: params,
+        ),
+        headers: {'Authorization': '$token'},
+      );
+      
+      if (response.statusCode == 200) {
+        return response.bodyBytes;
+      } else {
+        throw Exception('Error al obtener el reporte');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
   Future<int> getConteoClientes() async {
     try {
       String? token = await getToken();

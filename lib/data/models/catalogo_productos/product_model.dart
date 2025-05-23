@@ -12,6 +12,7 @@ class Producto {
   final List<String>? imagenes;
   final bool activo;
   final DateTime? fechaCreacion;
+  bool modificado;
 
   Producto({
     required this.id,
@@ -25,6 +26,7 @@ class Producto {
     this.imagenes,
     this.activo = true,
     this.fechaCreacion,
+    this.modificado = false
   });
 
   factory Producto.fromJson(Map<String, dynamic> json) {
@@ -62,7 +64,9 @@ class Producto {
     };
   }
 
-  Producto copyWith({List<Variante>? variantes, String? nombre, String? descripcion, String? categoria, String? subcategoria, String? calidad, String? corte}) {
+  Producto copyWith({List<Variante>? variantes, String? nombre, String? descripcion, String? categoria, String? subcategoria, String? calidad, String? corte, bool? modificado}) {
+    final variantesModificadas = variantes?.any((v) => v.modificado) ?? 
+                               this.variantes?.any((v) => v.modificado) ?? false;
     return Producto(
       id: this.id,
       nombre: nombre ?? this.nombre,
@@ -75,6 +79,7 @@ class Producto {
       imagenes: this.imagenes,
       activo: this.activo,
       fechaCreacion: this.fechaCreacion,
+      modificado: modificado ?? variantesModificadas
     );
   }
 }

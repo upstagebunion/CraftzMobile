@@ -630,10 +630,12 @@ class ApiService {
       );
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
+      } else {
+        final String error = jsonDecode(response.body)['message'];
+        throw error;
       }
-      throw Exception('Error al actualizar estado de venta');
     } catch (error) {
-      throw Exception('Error al actualizar estado de venta');
+      throw error;
     }
   }
 

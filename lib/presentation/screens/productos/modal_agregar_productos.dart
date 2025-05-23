@@ -72,70 +72,72 @@ class ModalAgregarProductos {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: colorController,
-                  decoration: InputDecoration(labelText: 'Nombre del Color'),
-                ),
-              ),
-              if (!usaTallas)
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
-                    controller: stockController,
-                    decoration: InputDecoration(labelText: 'Stock'),
-                    keyboardType: TextInputType.number,
+                    controller: colorController,
+                    decoration: InputDecoration(labelText: 'Nombre del Color'),
                   ),
                 ),
-              if (!usaTallas)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: TextField(
-                    controller: costoController,
-                    decoration: InputDecoration(labelText: 'Costo'),
-                    keyboardType: TextInputType.number,
+                if (!usaTallas)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: TextField(
+                      controller: stockController,
+                      decoration: InputDecoration(labelText: 'Stock'),
+                      keyboardType: TextInputType.number,
+                    ),
                   ),
-                ),
-              ElevatedButton(
-                onPressed: () async {
-                  final nuevoColor = colorController.text.trim();
-                  if (nuevoColor.isNotEmpty) {
-                    try {
-                      isEditing 
-                      ? await ref.read(productosProvider.notifier).editarColor(
-                        producto.id,
-                        variante.id,
-                        color!.id,
-                        nuevoColor,
-                        !usaTallas ? int.parse(stockController.text) : null,
-                        !usaTallas ? double.parse(costoController.text) : null
-                      )
-                      : await ref.read(productosProvider.notifier).agregarColor(
-                        producto.id,
-                        variante.id,
-                        nuevoColor,
-                        !usaTallas ? int.parse(stockController.text) : null,
-                        !usaTallas ? double.parse(costoController.text) : null,
-                      );
-                      Navigator.pop(context);
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: $e')),
-                      );
+                if (!usaTallas)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: TextField(
+                      controller: costoController,
+                      decoration: InputDecoration(labelText: 'Costo'),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final nuevoColor = colorController.text.trim();
+                    if (nuevoColor.isNotEmpty) {
+                      try {
+                        isEditing 
+                        ? await ref.read(productosProvider.notifier).editarColor(
+                          producto.id,
+                          variante.id,
+                          color!.id,
+                          nuevoColor,
+                          !usaTallas ? int.parse(stockController.text) : null,
+                          !usaTallas ? double.parse(costoController.text) : null
+                        )
+                        : await ref.read(productosProvider.notifier).agregarColor(
+                          producto.id,
+                          variante.id,
+                          nuevoColor,
+                          !usaTallas ? int.parse(stockController.text) : null,
+                          !usaTallas ? double.parse(costoController.text) : null,
+                        );
+                        Navigator.pop(context);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
+                      }
                     }
-                  }
-                },
-                child: Text('Guardar Color'),
-              ),
-            ],
+                  },
+                  child: Text('Guardar Color'),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -152,70 +154,72 @@ class ModalAgregarProductos {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: tallaController,
-                  decoration: InputDecoration(labelText: 'Talla'),
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: tallaController,
+                    decoration: InputDecoration(labelText: 'Talla'),
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: stockController,
-                  decoration: InputDecoration(labelText: 'Stock'),
-                  keyboardType: TextInputType.number,
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: stockController,
+                    decoration: InputDecoration(labelText: 'Stock'),
+                    keyboardType: TextInputType.number,
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: costoController,
-                  decoration: InputDecoration(labelText: 'Costo'),
-                  keyboardType: TextInputType.number,
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: costoController,
+                    decoration: InputDecoration(labelText: 'Costo'),
+                    keyboardType: TextInputType.number,
+                  ),
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final nuevaTalla = tallaController.text.trim();
-                  if (nuevaTalla.isNotEmpty) {
-                    try {
-                      isEditing 
-                      ? await ref.read(productosProvider.notifier).editarTalla(
-                        producto.id,
-                        variante.id,
-                        color.id,
-                        talla!.id,
-                        nuevaTalla, 
-                        int.parse(stockController.text),
-                        double.parse(costoController.text)
-                        )
-                      : await ref.read(productosProvider.notifier).agregarTalla(
-                        producto.id,
-                        variante.id,
-                        color.id,
-                        nuevaTalla,
-                        int.parse(stockController.text),
-                        double.parse(costoController.text),
-                      );
-                      Navigator.pop(context);
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: $e')),
-                      );
+                ElevatedButton(
+                  onPressed: () async {
+                    final nuevaTalla = tallaController.text.trim();
+                    if (nuevaTalla.isNotEmpty) {
+                      try {
+                        isEditing 
+                        ? await ref.read(productosProvider.notifier).editarTalla(
+                          producto.id,
+                          variante.id,
+                          color.id,
+                          talla!.id,
+                          nuevaTalla, 
+                          int.parse(stockController.text),
+                          double.parse(costoController.text)
+                          )
+                        : await ref.read(productosProvider.notifier).agregarTalla(
+                          producto.id,
+                          variante.id,
+                          color.id,
+                          nuevaTalla,
+                          int.parse(stockController.text),
+                          double.parse(costoController.text),
+                        );
+                        Navigator.pop(context);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
+                      }
                     }
-                  }
-                },
-                child: Text('Guardar Talla'),
-              ),
-            ],
+                  },
+                  child: Text('Guardar Talla'),
+                ),
+              ],
+            ),
           ),
         );
       },

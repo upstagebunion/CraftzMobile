@@ -4,8 +4,9 @@ class Variante {
   final String id;
   final String? tipo;
   final List<Color> colores;
+  bool modificado;
 
-  Variante({required this.id, this.tipo, required this.colores});
+  Variante({required this.id, this.tipo, required this.colores, this.modificado = false});
 
   factory Variante.fromJson(Map<String, dynamic> json) {
     return Variante(
@@ -25,11 +26,14 @@ class Variante {
     };
   }
 
-  Variante copyWith({List<Color>? colores, String? tipo}) {
+  Variante copyWith({List<Color>? colores, String? tipo, bool? modificado}) {
+    final coloresModificados = colores?.any((c) => c.modificado) ?? 
+                             this.colores.any((c) => c.modificado);
     return Variante(
       id: this.id,
       colores: colores ?? this.colores,
-      tipo: tipo ?? this.tipo
+      tipo: tipo ?? this.tipo,
+      modificado: modificado ?? coloresModificados
       );
   }
 }
