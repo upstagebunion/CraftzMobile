@@ -79,4 +79,18 @@ class CostosElaboracionNotifier extends StateNotifier<CatalogoCostosElaboracion>
       throw Exception('Error al eliminar el parametro de costo de elaboracion: $e');
     }
   }
+
+  Future<void> actualizarCostoElaboracion(ParametroCostoElaboracion costo) async {
+    try {
+      final response = await apiService.actualizarCostoElaboracion(costo.id, costo.toJson());
+      final costoActualizado = ParametroCostoElaboracion.fromJson(response);
+      state = CatalogoCostosElaboracion(
+        costos: state.costos.map((c) => 
+          c.id == costo.id ? costoActualizado : c
+        ).toList()
+      );
+    } catch (e) {
+      throw Exception('Error al eliminar el parametro de costo de elaboracion: $e');
+    }
+  }
 }

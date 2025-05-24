@@ -1,8 +1,12 @@
+import 'package:craftz_app/services/reportes_services.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:craftz_app/data/repositories/ventas_repositorie.dart';
 import 'package:craftz_app/providers/ventas_provider.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
 import './detalle_venta_screen.dart';
 import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
 
@@ -19,6 +23,30 @@ class _VentasScreenState extends ConsumerState<VentasScreen>{
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(ventasProvider.notifier).cargarVentas();
     });
+  }
+
+  void _generarRecibo(WidgetRef ref, String id) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Generando recibo... Por favor espere.'), duration: Duration(seconds: 5)),
+      );
+      final ReporteService reporteService = ReporteService();
+      final FileSaver fileSaver = FileSaver();
+      final pdfBytes = await reporteService.generarReciboVentaPDF(id);
+
+      final file = await fileSaver.saveFile(
+        name: 'recibo_venta_${DateFormat('yyyyMMdd').format(DateTime.now())}',
+        bytes: pdfBytes,
+        ext: 'pdf',
+        mimeType: MimeType.pdf,
+      );
+      
+      await OpenFilex.open(file);
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al generar reporte: ${error.toString()}')),
+      );
+    }
   }
 
   @override
@@ -47,7 +75,8 @@ class _VentasScreenState extends ConsumerState<VentasScreen>{
                       final venta = ventasState.ventas[index];
                       return _VentaCard(
                         venta: venta,
-                        onReverse: () => _revertirVenta(ref, venta.id)
+                        onReverse: () => _revertirVenta(ref, venta.id),
+                        onGenerateRecipe: () => _generarRecibo(ref, venta.id),
                       );
                     },
                   ),
@@ -77,10 +106,12 @@ class _VentasScreenState extends ConsumerState<VentasScreen>{
 class _VentaCard extends StatelessWidget {
   final Venta venta;
   final VoidCallback onReverse;
+  final VoidCallback onGenerateRecipe;
 
   const _VentaCard({
       required this.venta,
-      required this.onReverse
+      required this.onReverse,
+      required this.onGenerateRecipe
     });
 
   @override
@@ -97,6 +128,14 @@ class _VentaCard extends StatelessWidget {
             backgroundColor: colors.primary,
             icon: Icons.currency_exchange,
             label: 'Revertir a cotización',
+          ),
+          SlidableAction(
+            onPressed: (context) async {
+              onGenerateRecipe();
+            },
+            backgroundColor: colors.secondary,
+            icon: Icons.receipt_long,
+            label: 'Generar Recibo',
           ),
         ]
       ),

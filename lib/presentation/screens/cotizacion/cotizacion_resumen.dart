@@ -24,6 +24,7 @@ class ResumenCotizacion extends ConsumerWidget {
         ),
       ),
     );
+
     final subTotal = cotizacion.subTotal;
     final total = cotizacion.total;
 
@@ -145,7 +146,7 @@ class ResumenCotizacion extends ConsumerWidget {
               onPressed: () {
                 final newDescuento = Descuento(razon: razon, tipo: tipo, valor: valor);
                 ref.read(cotizacionesProvider.notifier).aplicarDescuentoGlobalACotizacion(
-                  cotizacion.id!,
+                  cotizacion.id,
                   newDescuento
                 );
                 Navigator.pop(context);

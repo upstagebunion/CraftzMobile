@@ -63,7 +63,6 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final isLoading = ref.watch(isLoadingProvider) || ref.watch(proveedorCategorias.isLoadingCategories)
                       || ref.watch(isLoadingCostosElaboracion) || ref.watch(isLoadingExtras);
     late final productos;
@@ -130,7 +129,7 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
                 producto: productosEnCotizacion[index],
                 onRemove: () => ref.read(cotizacionesProvider.notifier).removerProductoDeCotizacion(_cotizacionLocal!.id!, index),
                 onUpdate: (ProductoCotizado nuevoProducto) => ref.read(cotizacionesProvider.notifier)
-                  .actualizarProductoEnCotizacion(_cotizacionLocal!.id!, index, nuevoProducto),
+                  .actualizarProductoEnCotizacion(_cotizacionLocal!.id, index, nuevoProducto),
               );
             },
           ),

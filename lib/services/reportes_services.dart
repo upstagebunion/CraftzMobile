@@ -65,6 +65,44 @@ class ReporteService {
     }
   }
 
+  Future<Uint8List> generarReciboCotizacionPDF (String cotizacionId) async {
+    try {
+      String? token = await getToken();
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/reportes/recibo-cotizacion/$cotizacionId'),
+        headers: {'Authorization': '$token'},
+      );
+      
+      if (response.statusCode == 200) {
+        return response.bodyBytes;
+      } else {
+        throw Exception('Error al obtener el recibo');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  Future<Uint8List> generarReciboVentaPDF (String ventaId) async {
+    try {
+      String? token = await getToken();
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/reportes/recibo-venta/$ventaId'),
+        headers: {'Authorization': '$token'},
+      );
+      
+      if (response.statusCode == 200) {
+        return response.bodyBytes;
+      } else {
+        throw Exception('Error al obtener el recibo');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
   Future<int> getConteoClientes() async {
     try {
       String? token = await getToken();

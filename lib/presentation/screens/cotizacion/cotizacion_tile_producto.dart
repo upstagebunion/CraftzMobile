@@ -79,7 +79,7 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
 
                         widget.onUpdate(widget.producto.copyWith(
                           cantidad: nuevaCantidad,
-                          precioFinal: nuevoPrecioFinal,
+                          precioFinal: double.parse(nuevoPrecioFinal.toStringAsFixed(2)),
                         ));
                       }
                     },
@@ -92,7 +92,7 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
                       final nuevoPrecioFinal = (widget.producto.precio * nuevaCantidad);
                       widget.onUpdate(widget.producto.copyWith(
                         cantidad: nuevaCantidad,
-                        precioFinal: nuevoPrecioFinal,
+                        precioFinal: double.parse(nuevoPrecioFinal.toStringAsFixed(2)),
                       ));
                     },
                   ),
@@ -178,6 +178,7 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
   }
 
   void _mostrarDialogoDescuento() {
+    final CalculadorCostos calculador = CalculadorCostos(ref);
     String razon = widget.producto.descuento?.razon ?? '';
     String tipo = widget.producto.descuento?.tipo ?? 'porcentaje';
     double valor = widget.producto.descuento?.valor ?? 0;
@@ -217,22 +218,24 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 final descuento = Descuento(
                   razon: razon,
                   tipo: tipo,
                   valor: valor,
                 );
-                
-                // Calcular nuevo precio con descuento
-                double nuevoPrecio = _aplicarDescuento(
-                  widget.producto.precioFinal,
-                  descuento,
+
+                final nuevoPrecio = await calculador.calcularPrecioFinal(
+                  subcategoriaId: widget.producto.subcategoriaId,
+                  extras: widget.producto.extras,
+                  precioBase: widget.producto.precioBase,
+                  descuento: descuento
                 );
                 
                 widget.onUpdate(widget.producto.copyWith(
                   descuento: descuento,
-                  precioFinal: nuevoPrecio,
+                  precio: nuevoPrecio,
+                  precioFinal: nuevoPrecio * widget.producto.cantidad,
                 ));
                 
                 Navigator.pop(context);
@@ -243,14 +246,6 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
         );
       },
     );
-  }
-
-  double _aplicarDescuento(double precioActual, Descuento descuento) {
-    if (descuento.tipo == 'porcentaje') {
-      return precioActual * (1 - descuento.valor / 100);
-    } else {
-      return precioActual - descuento.valor;
-    }
   }
 
   String _formatearDescuento(Descuento descuento) {

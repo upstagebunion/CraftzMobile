@@ -442,6 +442,26 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> actualizarCostoElaboracion(String parametroId, Map<String, dynamic> cotizacion) async {
+    String? token = await getToken();
+
+    final response = await http.patch(
+      Uri.parse('$baseUrl/api/parametrosCostos/$parametroId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+      body: jsonEncode(cotizacion),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['costo'];
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'];
+      throw 'Error al agregar talla: ${mensaje}';
+    }
+  }
+
   Future<List<dynamic>> getClientes() async {
     String? token = await getToken();
 
@@ -562,6 +582,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> actualizarCotizacion(String id, Map<String, dynamic> cotizacion) async {
     String? token = await getToken();
+    cotizacion.remove('vendedor');
 
     final response = await http.patch(
       Uri.parse('$baseUrl/api/cotizaciones/$id'),

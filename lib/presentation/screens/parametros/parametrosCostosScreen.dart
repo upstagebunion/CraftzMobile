@@ -429,9 +429,9 @@ class _ParametroCostoElaboracionFormState extends ConsumerState<ParametroCostoEl
                                     .read(costosElaboracionProvider.notifier)
                                     .agregarParametroCostoElaboracion(costo);
                               } else {
-                                /*await ref
+                                await ref
                                     .read(costosElaboracionProvider.notifier)
-                                    .actualizarCostoElaboracion(costo);*/
+                                    .actualizarCostoElaboracion(costo);
                               }
       
                               Navigator.pop(context);

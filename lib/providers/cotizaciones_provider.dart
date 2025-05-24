@@ -117,6 +117,7 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
         return cotizacion;
       }).toList()
     );
+    _verificarYAplicarDescuentoMayoreo(cotizacionId);
   }
 
   void removerProductoDeCotizacion(String cotizacionId, int index) {
@@ -134,6 +135,7 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
         return cotizacion;
       }).toList()
     );
+    _verificarYAplicarDescuentoMayoreo(cotizacionId);
   }
 
   void actualizarProductoEnCotizacion(String cotizacionId, int index, ProductoCotizado producto) {
@@ -151,6 +153,7 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
         return cotizacion;
       }).toList()
     );
+    _verificarYAplicarDescuentoMayoreo(cotizacionId);
   }
 
   void aplicarDescuentoGlobalACotizacion(String cotizacionId, Descuento descuento) {
@@ -162,6 +165,21 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
             // Actualizar totales al aplicar descuento
             subTotal: _calcularSubTotal(cotizacion.productos),
             total: _calcularTotal(cotizacion.productos, descuento),
+          );
+        }
+        return cotizacion;
+      }).toList()
+    );
+  }
+
+   void eliminarDescuentoGlobal(String cotizacionId) {
+    state = CatalogoCotizaciones(
+      cotizaciones: state.cotizaciones.map((cotizacion) {
+        if (cotizacion.id == cotizacionId) {
+          return cotizacion.copyWith(
+            descuentoGlobal: null,
+            subTotal: _calcularSubTotal(cotizacion.productos),
+            total: _calcularTotal(cotizacion.productos, null),
           );
         }
         return cotizacion;
@@ -193,6 +211,30 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
       );
     } catch (e) {
       throw Exception('Error al eliminar cotización: $e');
+    }
+  }
+
+  void _verificarYAplicarDescuentoMayoreo(String cotizacionId) {
+    final cotizacion = state.cotizaciones.firstWhere((c) => c.id == cotizacionId);
+
+    final totalProductos = cotizacion.productos.fold<int>(
+      0,
+      (int previousValue, ProductoCotizado producto) {
+        return previousValue + producto.cantidad;
+      },
+    );
+
+    if (totalProductos > 6) {
+      final descuentoGlobal = Descuento(
+        razon: 'Mayoreo',
+        tipo: 'cantidad',
+        valor: totalProductos * 10.0,
+      );
+      // Llama a la función existente para aplicar el descuento
+      aplicarDescuentoGlobalACotizacion(cotizacionId, descuentoGlobal);
+    } else if (totalProductos <= 6 && cotizacion.descuentoGlobal != null) {
+      // Opcional: Si los productos bajan y el descuento de mayoreo estaba aplicado, quítalo.
+      eliminarDescuentoGlobal(cotizacionId); // Pasa null para remover el descuento
     }
   }
 }

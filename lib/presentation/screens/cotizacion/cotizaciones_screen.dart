@@ -1,11 +1,14 @@
 import 'package:craftz_app/data/repositories/cotizacion_repositories.dart';
 import 'package:craftz_app/providers/cotizaciones_provider.dart';
+import 'package:craftz_app/services/reportes_services.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:craftz_app/presentation/screens/cotizacion/cotizacion_screen.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 import 'package:craftz_app/presentation/widgets/appbar_widget.dart';
+import 'package:open_filex/open_filex.dart';
 
 class ListaCotizacionesScreen extends ConsumerStatefulWidget {
   const ListaCotizacionesScreen({super.key});
@@ -63,7 +66,8 @@ class _ListaCotizacionesScreenState extends ConsumerState<ListaCotizacionesScree
                       cotizacion: cotizacion,
                       onTap: () => _verCotizacion(context, ref, cotizacion),
                       onDelete: () => _eliminarCotizacion(ref, cotizacion.id),
-                      onConvert: () => _convertirAVenta(ref, cotizacion.id)
+                      onConvert: () => _convertirAVenta(ref, cotizacion.id),
+                      onGenerateRecipe: () => _generarRecibo(ref, cotizacion.id)
                     );
                   },
                 ),
@@ -103,6 +107,30 @@ class _ListaCotizacionesScreenState extends ConsumerState<ListaCotizacionesScree
     }
     
   }
+
+   void _generarRecibo(WidgetRef ref, String id) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Generando recibo... Por favor espere.'), duration: Duration(seconds: 5)),
+      );
+      final ReporteService reporteService = ReporteService();
+      final FileSaver fileSaver = FileSaver();
+      final pdfBytes = await reporteService.generarReciboCotizacionPDF(id);
+
+      final file = await fileSaver.saveFile(
+        name: 'recibo_cotizacion_${DateFormat('yyyyMMdd').format(DateTime.now())}',
+        bytes: pdfBytes,
+        ext: 'pdf',
+        mimeType: MimeType.pdf,
+      );
+      
+      await OpenFilex.open(file);
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al generar reporte: ${error.toString()}')),
+      );
+    }
+  }
   
   void _eliminarCotizacion(WidgetRef ref, String id) {
     ref.read(cotizacionesProvider.notifier).eliminarCotizacion(id);
@@ -130,12 +158,14 @@ class _CotizacionItem extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onConvert;
+  final VoidCallback onGenerateRecipe;
 
   const _CotizacionItem({
     required this.cotizacion,
     required this.onTap,
     required this.onDelete,
     required this.onConvert,
+    required this.onGenerateRecipe,
   });
 
   @override
@@ -152,6 +182,14 @@ class _CotizacionItem extends StatelessWidget {
             backgroundColor: colors.primary,
             icon: Icons.point_of_sale,
             label: 'Convertir a venta',
+          ),
+          SlidableAction(
+            onPressed: (context) async {
+              onGenerateRecipe();
+            },
+            backgroundColor: colors.secondary,
+            icon: Icons.receipt_long,
+            label: 'Generar recibo',
           ),
         ]
       ),
