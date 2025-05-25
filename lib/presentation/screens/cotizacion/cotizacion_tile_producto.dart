@@ -479,7 +479,7 @@ class __DialogoExtraTemporalState extends State<_DialogoExtraTemporal> {
                           if (double.tryParse(value!) == null) return 'Número inválido';
                           return null;
                         },
-                        onChanged: (value) => _anchoCm = double.parse(value),
+                        onChanged: (value) => value != '' ? _anchoCm = double.parse(value) : 0,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -492,7 +492,7 @@ class __DialogoExtraTemporalState extends State<_DialogoExtraTemporal> {
                           if (double.tryParse(value!) == null) return 'Número inválido';
                           return null;
                         },
-                        onChanged: (value) => _largoCm = double.parse(value),
+                        onChanged: (value) => value != '' ? _largoCm = double.parse(value) : 0,
                       ),
                     ),
                   ],
