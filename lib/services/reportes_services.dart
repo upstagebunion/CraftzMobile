@@ -223,7 +223,9 @@ class ReporteService {
       );
       
       if (response.statusCode == 200) {
-        return jsonDecode(response.body)['totalRevenue'];
+        final decodedBody = jsonDecode(response.body)['totalRevenue'];
+        final double totalRevenue = (decodedBody as num).toDouble();
+        return totalRevenue;
       } else {
         throw Exception('Error al obtener el reporte');
       }

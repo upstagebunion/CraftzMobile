@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadData() async {
     try {
       final ventas = await reporteService.getVentasHoy();
-      final ingresos = await reporteService.getIngresosMes();
+      final double ingresos = await reporteService.getIngresosMes();
       final productos = await reporteService.getConteoProductos();
       final clientes = await reporteService.getConteoClientes();
 
