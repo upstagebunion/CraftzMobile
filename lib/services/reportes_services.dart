@@ -19,6 +19,25 @@ class ReporteService {
     return token;
   }
 
+  /*Future<bool> requestStoragePermission() async {
+    PermissionStatus status = await Permission.storage.status;
+
+    if (status.isGranted) {
+      return true;
+    } else if (status.isDenied) {
+      status = await Permission.storage.request();
+      return status.isGranted;
+    } else if (status.isPermanentlyDenied) {
+      print('El permiso de almacenamiento ha sido denegado permanentemente. Abrir configuración.');
+      openAppSettings();
+      return false;
+    } else if (status.isRestricted || status.isLimited) {
+      status = await Permission.storage.request();
+      return status.isGranted;
+    }
+    return false;
+  }*/
+
   Future<Uint8List> obtenerReporteVentas(String tipo) async {
     try {
       String? token = await getToken();
@@ -31,16 +50,15 @@ class ReporteService {
         final html = response.body;
         return await generarPDF('Reporte_ventas', html);
       } else {
-        throw Exception('Error al obtener el reporte');
+        throw 'Error al obtener el reporte';
       }
     } catch (e) {
-      throw Exception('Error de conexión: $e');
+      throw 'Error de conexión: $e';
     }
   }
 
   Future<Uint8List> generarPDF(String fileName, String htmlContent) async {
     try {
-
     final directory = await getTemporaryDirectory();
     final targetPath = directory.path;
     final targetFileName = fileName;
@@ -65,7 +83,7 @@ class ReporteService {
       return pdfBytes;
     } catch (e) {
       print("⚠️ Error al generar PDF: $e");
-      throw Exception("No se pudo generar el PDF");
+      throw "No se pudo generar el PDF";
     }
   }
 
@@ -196,7 +214,7 @@ class ReporteService {
     }
   }
 
-  Future<int> getIngresosMes() async {
+  Future<double> getIngresosMes() async {
     try {
       String? token = await getToken();
       final response = await http.get(

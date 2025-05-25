@@ -140,7 +140,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         'Bienvenido/a',
-                        style: theme.textTheme.displayLarge,
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          fontSize: 45,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -160,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 1.2,
+                    childAspectRatio: 1,
                     children: [
                       _MetricCard(
                         icon: Icons.shopping_bag,
@@ -194,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 24, bottom: 16),
                   child: Text(
-                    'Generar Reporte de ventass',
+                    'Generar Reporte de ventas',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                       color: colors.primary,
