@@ -60,6 +60,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _generarReporte(String periodo) async {
     try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Generando recibo... Por favor espere.'), duration: Duration(seconds: 5)),
+      );
       final pdfBytes = await reporteService.obtenerReporteVentas(periodo);
       final file = await fileSaver.saveFile(
         name: 'reporte_ventas_${periodo.toLowerCase()}.pdf',

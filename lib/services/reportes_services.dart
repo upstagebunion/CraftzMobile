@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:html_to_pdf/html_to_pdf.dart';
 
 class ReporteService {
   final String baseUrl = dotenv.env['API_URL'] ?? 'https://craftzapp.onrender.com';
@@ -25,12 +28,44 @@ class ReporteService {
       );
       
       if (response.statusCode == 200) {
-        return response.bodyBytes;
+        final html = response.body;
+        return await generarPDF('Reporte_ventas', html);
       } else {
         throw Exception('Error al obtener el reporte');
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
+    }
+  }
+
+  Future<Uint8List> generarPDF(String fileName, String htmlContent) async {
+    try {
+
+    final directory = await getTemporaryDirectory();
+    final targetPath = directory.path;
+    final targetFileName = fileName;
+      // 1. Convertir HTML a widgets de PDF
+      final generatedPdfFile  = await HtmlToPdf.convertFromHtmlContent(
+        htmlContent: htmlContent,
+        printPdfConfiguration: PrintPdfConfiguration(
+          targetDirectory: targetPath,
+          targetName: targetFileName,
+          printSize: PrintSize.A4,
+          printOrientation: PrintOrientation.Portrait,
+        )
+      );
+
+      // 2. Crear el documento PDF
+      final pdfBytes = await File(generatedPdfFile.path!).readAsBytes();
+
+      // 3. Eliminar archivo temporal PDF
+      await File(generatedPdfFile.path).delete();
+
+      // 4. Retornar el PDF en Bytes
+      return pdfBytes;
+    } catch (e) {
+      print("⚠️ Error al generar PDF: $e");
+      throw Exception("No se pudo generar el PDF");
     }
   }
 
@@ -56,7 +91,8 @@ class ReporteService {
       );
       
       if (response.statusCode == 200) {
-        return response.bodyBytes;
+        final html = response.body;
+        return await generarPDF('Reporte_ventas', html);
       } else {
         throw Exception('Error al obtener el reporte');
       }
@@ -75,7 +111,8 @@ class ReporteService {
       );
       
       if (response.statusCode == 200) {
-        return response.bodyBytes;
+        final html = response.body;
+        return await generarPDF('Reporte_ventas', html);
       } else {
         throw Exception('Error al obtener el recibo');
       }
@@ -94,7 +131,8 @@ class ReporteService {
       );
       
       if (response.statusCode == 200) {
-        return response.bodyBytes;
+        final html = response.body;
+        return await generarPDF('Reporte_ventas', html);
       } else {
         throw Exception('Error al obtener el recibo');
       }

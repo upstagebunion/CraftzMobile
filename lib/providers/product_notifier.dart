@@ -268,16 +268,17 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
               color: nuevoColor,
               stock: nuevoStock ?? color.stock,
               costo: nuevoCosto ?? color.costo,
+              modificado: true
             );
           }
           return color;
         }).toList();
-        return variante.copyWith(colores: updatedColores);
+        return variante.copyWith(colores: updatedColores, modificado: true);
       }
       return variante;
     }).toList();
 
-    final updatedProducto = producto.copyWith(variantes: updatedVariantes);
+    final updatedProducto = producto.copyWith(variantes: updatedVariantes, modificado: true);
     final updatedProductos = List<Producto>.from(state.productos);
     updatedProductos[productoIndex] = updatedProducto;
 
@@ -307,20 +308,21 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
                   talla: nuevaTalla ?? talla.talla,
                   stock: nuevoStock ?? talla.stock,
                   costo: nuevoCosto ?? talla.costo,
+                  modificado: true
                 );
               }
               return talla;
             }).toList();
-            return color.copyWith(tallas: updatedTallas);
+            return color.copyWith(tallas: updatedTallas, modificado: true);
           }
           return color;
         }).toList();
-        return variante.copyWith(colores: updatedColores);
+        return variante.copyWith(colores: updatedColores, modificado: true);
       }
       return variante;
     }).toList();
 
-    final updatedProducto = producto.copyWith(variantes: updatedVariantes);
+    final updatedProducto = producto.copyWith(variantes: updatedVariantes, modificado: true);
     final updatedProductos = List<Producto>.from(state.productos);
     updatedProductos[productoIndex] = updatedProducto;
 
@@ -334,12 +336,12 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     final producto = state.productos[productoIndex];
     final updatedVariantes = producto.variantes?.map((variante) {
       if (variante.id == varianteId) {
-        return variante.copyWith(tipo: nuevoTipo);
+        return variante.copyWith(tipo: nuevoTipo, modificado: true);
       }
       return variante;
     }).toList();
 
-    final updatedProducto = producto.copyWith(variantes: updatedVariantes);
+    final updatedProducto = producto.copyWith(variantes: updatedVariantes, modificado: true);
     final updatedProductos = List<Producto>.from(state.productos);
     updatedProductos[productoIndex] = updatedProducto;
 
@@ -357,7 +359,8 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
       categoria : nuevosDatos['categoria'] ?? producto.categoria,
       subcategoria : nuevosDatos['subcategoria'] ?? producto.subcategoria,
       calidad : nuevosDatos['calidad'] ?? producto.calidad,
-      corte : nuevosDatos['corte'] ?? producto.corte
+      corte : nuevosDatos['corte'] ?? producto.corte,
+      modificado: true
     );
 
     final updatedProductos = List<Producto>.from(state.productos);

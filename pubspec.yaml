@@ -1,6 +1,6 @@
 name: craftz_app
 description: Craftz Administration App.
-version: 1.3.5
+version: 1.3.6
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -20,6 +20,8 @@ dependencies:
   package_info_plus: ^8.3.0
   file_saver: ^0.2.14
   open_filex: ^4.7.0
+  html_to_pdf: ^0.8.1
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:

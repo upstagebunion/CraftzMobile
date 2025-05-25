@@ -103,7 +103,7 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
               : _buildContent(context, ref, productos),
             Positioned(
               right: 16,
-              top: MediaQuery.of(context).size.height - 340,
+              top: MediaQuery.of(context).size.height - 370,
               child: FloatingActionButton(
                 onPressed: () => _mostrarSelectorProductos(context, ref, productos, categorias),
                 child: const Icon(Icons.add)
