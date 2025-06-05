@@ -111,6 +111,11 @@ class MyApp extends StatelessWidget {
             textStyle: TextStyle(fontFamily: 'Eras', fontWeight: FontWeight.w600)
           )
         ),
+        datePickerTheme: DatePickerThemeData(
+          rangePickerHeaderBackgroundColor: Color(0xff292662),
+          rangePickerHeaderForegroundColor: Colors.white,
+          rangeSelectionBackgroundColor: Color.fromARGB(255, 196, 194, 230),
+        )
       ),
       initialRoute: initialRoute,
       routes: AppRoutes.routes,

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -250,7 +251,7 @@ class ApiService {
       return jsonDecode(response.body)['categoria'];
     } else {
       final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
-      throw 'Error al crear cliente: $mensaje';
+      throw 'Error al crear categoria: $mensaje';
     }
   }
 
@@ -270,7 +271,7 @@ class ApiService {
       return jsonDecode(response.body)['subcategoria'];
     } else {
       final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
-      throw 'Error al crear cliente: $mensaje';
+      throw 'Error al crear subcategoria: $mensaje';
     }
   }
 
@@ -288,7 +289,7 @@ class ApiService {
     if (response.statusCode != 200) {
       final decodedBody = jsonDecode(response.body);
       final String mensaje = decodedBody.containsKey('message') ? decodedBody['message'] : 'Error desconocido';
-      throw 'Error al eliminar cliente: $mensaje';
+      throw 'Error al eliminar categoria: $mensaje';
     }
   }
 
@@ -305,7 +306,7 @@ class ApiService {
 
     if (response.statusCode != 200) {
       final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
-      throw 'Error al eliminar cliente: $mensaje';
+      throw 'Error al eliminar subcategoria: $mensaje';
     }
   }
 
@@ -634,6 +635,29 @@ class ApiService {
     } else {
       final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
       throw 'Error al cargar cotizaciones: $mensaje';
+    }
+  }
+
+  Future<List<dynamic>> obtenerVentasPorFecha(DateTime fechaInicio, DateTime fechaFin) async {
+    String? token = await getToken();
+    
+    // Formatear fechas a string (puedes ajustar el formato según lo que espere tu backend)
+    final fechaInicioStr = DateFormat('yyyy-MM-dd').format(fechaInicio);
+    final fechaFinStr = DateFormat('yyyy-MM-dd').format(fechaFin);
+    
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/ventas/?fecha_inicio=$fechaInicioStr&fecha_fin=$fechaFinStr'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
+      throw 'Error al cargar ventas por fecha: $mensaje';
     }
   }
 

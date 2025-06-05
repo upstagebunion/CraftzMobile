@@ -29,6 +29,19 @@ class VentasNotifier extends StateNotifier<CatalogoVentas> {
     }
   }
 
+  Future<void> cargarVentasPorFecha(DateTime fechaInicio, DateTime fechaFin) async {
+    try {
+      ref.read(isLoadingVentas.notifier).state = true;
+      final data = await apiService.obtenerVentasPorFecha(fechaInicio, fechaFin);
+      final ventas = data.map((item) => Venta.fromJson(item)).toList();
+      state = CatalogoVentas(ventas: ventas);
+    } catch (e) {
+      throw Exception('Error al cargar ventas por fecha: $e');
+    } finally {
+      ref.read(isLoadingVentas.notifier).state = false;
+    }
+  }
+
   Venta? getVentaById(String ventaId) {
     try {
       return state.ventas.firstWhere((v) => v.id == ventaId);

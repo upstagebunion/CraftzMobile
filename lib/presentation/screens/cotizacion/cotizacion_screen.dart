@@ -161,7 +161,7 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Seleccionar cliente'),
+          title: Text('Seleccionar cliente', style: Theme.of(context).textTheme.titleSmall),
           content: SizedBox(
             width: double.maxFinite,
             child: Column(
@@ -230,26 +230,29 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Nuevo cliente'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nombreController,
-                  decoration: const InputDecoration(labelText: 'Nombre*'),
-                ),
-                TextField(
-                  controller: telefonoController,
-                  decoration: const InputDecoration(labelText: 'Teléfono'),
-                  keyboardType: TextInputType.phone,
-                ),
-                TextField(
-                  controller: correoController,
-                  decoration: const InputDecoration(labelText: 'Correo electrónico'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-              ],
+          title: Text('Nuevo cliente', style: Theme.of(context).textTheme.titleSmall),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * .85,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nombreController,
+                    decoration: const InputDecoration(labelText: 'Nombre*'),
+                  ),
+                  TextField(
+                    controller: telefonoController,
+                    decoration: const InputDecoration(labelText: 'Teléfono'),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  TextField(
+                    controller: correoController,
+                    decoration: const InputDecoration(labelText: 'Correo electrónico'),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -271,8 +274,8 @@ class _CotizacionScreenState extends ConsumerState<CotizacionScreen>{
                   final nuevoCliente = Cliente(
                     id: '', // El backend generará el ID
                     nombre: nombreController.text,
-                    telefono: telefonoController.text,
-                    correo: correoController.text,
+                    telefono: telefonoController.text.isNotEmpty ? telefonoController.text : null,
+                    correo: correoController.text.isNotEmpty? correoController.text : null,
                     fechaRegistro: DateTime.now(),
                   );
 
