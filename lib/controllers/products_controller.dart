@@ -43,18 +43,27 @@ class ProductsController {
     }
   }
 
-  Future<void> eliminarColor(BuildContext context, String productoId, String varianteId, String colorId) async {
+  Future<void> eliminarCalidad(BuildContext context, String productoId, String varianteId, String calidadId) async {
     try {
-      await ref.read(productosProvider.notifier).eliminarColor(productoId, varianteId, colorId);
+      await ref.read(productosProvider.notifier).eliminarCalidad(productoId, varianteId, calidadId);
+      showSnackBar(context, 'Calidad eliminada exitosamente');
+    } catch (e) {
+      showSnackBar(context, 'Error: $e');
+    }
+  }
+
+  Future<void> eliminarColor(BuildContext context, String productoId, String varianteId, String calidadId, String colorId) async {
+    try {
+      await ref.read(productosProvider.notifier).eliminarColor(productoId, varianteId, calidadId, colorId);
       showSnackBar(context, 'Color eliminado exitosamente');
     } catch (e) {
       showSnackBar(context, 'Error: $e');
     }
   }
 
-  Future<void> eliminarTalla(BuildContext context, String productoId, String varianteId, String colorId, String tallaId) async {
+  Future<void> eliminarTalla(BuildContext context, String productoId, String varianteId, String calidadId, String colorId, String tallaId) async {
     try {
-      await ref.read(productosProvider.notifier).eliminarTalla(productoId, varianteId, colorId, tallaId);
+      await ref.read(productosProvider.notifier).eliminarTalla(productoId, varianteId, calidadId, colorId, tallaId);
       showSnackBar(context, 'Talla eliminada exitosamente');
     } catch (e) {
       showSnackBar(context, 'Error: $e');

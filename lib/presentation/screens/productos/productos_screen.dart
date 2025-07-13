@@ -28,6 +28,292 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     });
   }
 
+  Widget _buildStockControls({
+    required Producto producto,
+    required Variante variante,
+    required Calidad calidad,
+    required Color color,
+    required Subcategoria subcategoria,
+    Talla? talla,
+  }) {
+    final productsNotifier = ref.read(productosProvider.notifier);
+    final stock = talla?.stock ?? color.stock ?? 0;
+    final canDecrease = stock > 0;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(Icons.remove),
+          onPressed: canDecrease ? () {
+            if (subcategoria.usaTallas && talla != null) {
+              productsNotifier.actualizarStock(
+                producto.id, variante.id, calidad.id, color.id, talla.id, -1
+              );
+            } else {
+              productsNotifier.actualizarStock(
+                producto.id, variante.id, calidad.id, color.id, null, -1
+              );
+            }
+          } : null,
+        ),
+        Text('$stock'),
+        IconButton(
+          icon: Icon(Icons.add),
+          onPressed: () {
+            if (subcategoria.usaTallas && talla != null) {
+              productsNotifier.actualizarStock(
+                producto.id, variante.id, calidad.id, color.id, talla.id, 1
+              );
+            } else {
+              productsNotifier.actualizarStock(
+                producto.id, variante.id, calidad.id, color.id, null, 1
+              );
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTallaItem({
+    required BuildContext context,
+    required ProductsController productsController,
+    required Producto producto,
+    required Variante variante,
+    required Calidad calidad,
+    required Color color,
+    required Talla talla,
+    required Subcategoria subcategoria,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) => productsController
+              .eliminarTalla(context, producto.id, variante.id, calidad.id, color.id, talla.id),
+            backgroundColor: colors.secondary,
+            icon: Icons.delete,
+            label: 'Eliminar',
+          ),
+          SlidableAction(
+            onPressed: (context) => modalAgregarProductos.mostrarFormularioTalla(
+              context, producto, variante, calidad, color, 
+              isEditing: true, talla: talla
+            ),
+            backgroundColor: colors.primary,
+            icon: Icons.edit,
+            label: 'Editar',
+          ),
+        ],
+      ),
+      child: ListTile(
+        title: Text('${talla.talla ?? talla.codigo}'),
+        subtitle: Text('\$${talla.costo} - Stock: ${talla.stock}'),
+        trailing: _buildStockControls(
+          producto: producto,
+          variante: variante,
+          calidad: calidad,
+          color: color,
+          talla: talla,
+          subcategoria: subcategoria,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildColorItem({
+    required BuildContext context,
+    required ProductsController productsController,
+    required Producto producto,
+    required Variante variante,
+    required Calidad calidad,
+    required Color color,
+    required Subcategoria subcategoria,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) => productsController
+              .eliminarColor(context, producto.id, variante.id, calidad.id, color.id),
+            backgroundColor: colors.secondary,
+            icon: Icons.delete,
+            label: 'Eliminar',
+          ),
+          SlidableAction(
+            onPressed: (context) => modalAgregarProductos.mostrarFormularioColor(
+              context, producto, variante, calidad, subcategoria,
+              isEditing: true, 
+              color: color
+            ),
+            backgroundColor: colors.primary,
+            icon: Icons.edit,
+            label: 'Editar',
+          ),
+        ],
+      ),
+      child: Card(
+        child: ExpansionTile(
+          title: Text(color.color),
+          children: [
+            if (subcategoria.usaTallas && color.tallas != null)
+              ...color.tallas!.map((talla) => _buildTallaItem(
+                context: context,
+                productsController: productsController,
+                producto: producto,
+                variante: variante,
+                calidad: calidad,
+                color: color,
+                talla: talla,
+                subcategoria: subcategoria,
+              )),
+            if (!subcategoria.usaTallas)
+              ListTile(
+                title: Text('Stock: ${color.stock}'),
+                subtitle: Text('\$${color.costo}'),
+                trailing: _buildStockControls(
+                  producto: producto,
+                  variante: variante,
+                  calidad: calidad,
+                  color: color,
+                  subcategoria: subcategoria,
+                ),
+              ),
+            if (subcategoria.usaTallas)
+              TextButton(
+                onPressed: () => modalAgregarProductos.mostrarFormularioTalla(
+                  context, producto, variante, calidad, color, isEditing: false
+                ),
+                child: Text('Agregar Talla'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCalidadItem({
+    required BuildContext context,
+    required ProductsController productsController,
+    required Producto producto,
+    required Variante variante,
+    required Calidad calidad,
+    required Subcategoria subcategoria,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) => productsController
+              .eliminarCalidad(context, producto.id, variante.id, calidad.id),
+            backgroundColor: colors.secondary,
+            icon: Icons.delete,
+            label: 'Eliminar',
+          ),
+          SlidableAction(
+            onPressed: (context) => modalAgregarProductos.mostrarFormularioCalidad(
+              context, producto, variante,
+              isEditing: true,
+              calidad: calidad,
+            ),
+            backgroundColor: colors.primary,
+            icon: Icons.edit,
+            label: 'Editar',
+          ),
+        ],
+      ),
+      child: Card(
+        child: ExpansionTile(
+          title: Text(calidad.calidad ?? 'Calidad única'),
+          children: [
+            ...calidad.colores.map((color) => _buildColorItem(
+              context: context,
+              productsController: productsController,
+              producto: producto,
+              variante: variante,
+              calidad: calidad,
+              color: color,
+              subcategoria: subcategoria,
+            )),
+            TextButton(
+              onPressed: () => modalAgregarProductos.mostrarFormularioColor(
+                context, producto, variante, calidad, subcategoria
+              ),
+              child: Text('Agregar Color'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVarianteItem({
+    required BuildContext context,
+    required ProductsController productsController,
+    required Producto producto,
+    required Variante variante,
+    required Subcategoria subcategoria,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (context) => productsController
+              .eliminarVariante(context, producto.id, variante.id),
+            backgroundColor: colors.secondary,
+            icon: Icons.delete,
+            label: 'Eliminar',
+          ),
+          SlidableAction(
+            onPressed: (context) => modalAgregarProductos.mostrarFormularioVariante(
+              context, producto,
+              isEditing: true,
+              variante: variante,
+            ),
+            backgroundColor: colors.primary,
+            icon: Icons.edit,
+            label: 'Editar',
+          ),
+        ],
+      ),
+      child: Card(
+        child: ExpansionTile(
+          title: Text(variante.variante ?? 'Variante única'),
+          children: [
+            ...variante.calidades.map((calidad) => _buildCalidadItem(
+              context: context,
+              productsController: productsController,
+              producto: producto,
+              variante: variante,
+              calidad: calidad,
+              subcategoria: subcategoria,
+            )),
+            TextButton(
+              onPressed: () => modalAgregarProductos.mostrarFormularioCalidad(
+                context, producto, variante,
+                isEditing: false,
+              ),
+              child: Text('Agregar Calidad'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ProductsController productsController = ProductsController(ref);
@@ -48,247 +334,38 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
         child: isLoading
             ? Center(child: CircularProgressIndicator())
             : ListView.builder(
-                itemCount: catalogo.productos.length,
-                itemBuilder: (context, index) {
-                  Producto producto = catalogo.productos[index];
-                  Categoria? categoria = ref.read(proveedorCategorias.categoriesProvider.notifier).getCategoria(producto);
-                  Subcategoria? subcategoria = ref.read(proveedorCategorias.categoriesProvider.notifier).getSubcategoria(producto);
-                  return Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide.none,
-                        top: BorderSide.none,
-                        left: BorderSide.none,
-                        right: BorderSide.none
+              itemCount: catalogo.productos.length,
+              itemBuilder: (context, index) {
+                final producto = catalogo.productos[index];
+                final categoria = ref.read(proveedorCategorias.categoriesProvider.notifier).getCategoria(producto);
+                final subcategoria = ref.read(proveedorCategorias.categoriesProvider.notifier).getSubcategoria(producto);
+
+                if (categoria == null || subcategoria == null) {
+                  return ListTile(title: Text('Error: Categoría no encontrada para ${producto.nombre}'));
+                }
+
+                return Card(
+                  margin: EdgeInsets.all(8),
+                  child: ExpansionTile(
+                    title: Text(producto.nombre),
+                    subtitle: Text('${categoria.nombre} > ${subcategoria.nombre}'),
+                    children: [
+                      ...producto.variantes!.map((variante) => _buildVarianteItem(
+                        context: context,
+                        productsController: productsController,
+                        producto: producto,
+                        variante: variante,
+                        subcategoria: subcategoria,
+                      )),
+                      TextButton(
+                        onPressed: () => modalAgregarProductos.mostrarFormularioVariante(context, producto),
+                        child: Text('Agregar Variante'),
                       ),
-                    ),
-                    child: categoria == null && subcategoria == null
-                      ? Text('Error al obtener la categoria y subcategoria de ${producto.nombre}')
-                      : Slidable(
-                        endActionPane: ActionPane(
-                          motion: const ScrollMotion(),
-                          children: [
-                            SlidableAction(
-                              onPressed: (context) async {
-                                productsController.eliminarProducto(context, producto.id);
-                              },
-                              backgroundColor: colors.secondary,
-                              icon: Icons.delete,
-                              label: 'Eliminar',
-                            ),
-                            SlidableAction(
-                              onPressed: (context) async {
-                                final bool? hasSucceed = await Navigator.push(
-                                  currentContext,
-                                  MaterialPageRoute(
-                                    builder: (context) => FormProductoScreen(
-                                      isEditing: true,
-                                      producto: producto
-                                    ),
-                                  ),
-                                );
-                                if (hasSucceed != null && hasSucceed) {
-                                  if(!currentContext.mounted) return;
-                                  ScaffoldMessenger.of(currentContext).showSnackBar(
-                                    SnackBar(content: Text('Producto actualizado exitosamente')),
-                                  );
-                                }
-                              },
-                              backgroundColor: colors.primary,
-                              icon: Icons.edit,
-                              label: 'Editar',
-                            ),
-                          ],
-                        ),
-                        child: ExpansionTile(
-                          shape: RoundedRectangleBorder(side: BorderSide.none, borderRadius: BorderRadius.circular(20)),
-                          backgroundColor: colors.primary.withAlpha(15),
-                          onExpansionChanged: (bool expanded) {
-                            setState(() {
-                            });
-                          },
-                          title: Row(
-                            children: [
-                              Padding(padding: EdgeInsets.symmetric(vertical: 20)),
-                              Icon(Icons.shopping_bag),
-                              SizedBox(width: 20),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(producto.nombre),
-                                    Text(
-                                      producto.descripcion,
-                                      style: TextStyle(fontSize: 10),
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          children: [
-                            ...producto.variantes!.map((variante) {
-                              return Slidable(
-                                endActionPane: ActionPane(
-                                  motion: const ScrollMotion(),
-                                  children: [
-                                    SlidableAction(
-                                      onPressed: (context) async {
-                                        productsController.eliminarVariante(context, producto.id, variante.id);
-                                      },
-                                      backgroundColor: colors.secondary,
-                                      icon: Icons.delete,
-                                      label: 'Eliminar',
-                                    ),
-                                    SlidableAction(
-                                      onPressed: (context) async {
-                                        modalAgregarProductos.mostrarFormularioVariante(context, producto, isEditing: true, variante: variante);
-                                      },
-                                      backgroundColor: colors.primary,
-                                      icon: Icons.edit,
-                                      label: 'Editar',
-                                    ),
-                                  ],
-                                ),
-                                child: ExpansionTile(
-                                  shape: RoundedRectangleBorder(side: BorderSide.none, borderRadius: BorderRadius.circular(20)),
-                                  backgroundColor: colors.primary.withAlpha(10),
-                                  title: Text(variante.tipo ?? 'Accesorio'),
-                                  children: [
-                                    ...variante.colores.map((color) {
-                                      return Slidable(
-                                        endActionPane: ActionPane(
-                                          motion: const ScrollMotion(),
-                                          children: [
-                                            SlidableAction(
-                                              onPressed: (context) async {
-                                                productsController.eliminarColor(context, producto.id, variante.id, color.id);
-                                              },
-                                              backgroundColor: colors.secondary,
-                                              icon: Icons.delete,
-                                              label: 'Eliminar',
-                                            ),
-                                            SlidableAction(
-                                              onPressed: (context) async {
-                                                modalAgregarProductos.mostrarFormularioColor(context, producto, variante, subcategoria!, isEditing: true, color:color);
-                                              },
-                                              backgroundColor: colors.primary,
-                                              icon: Icons.edit,
-                                              label: 'Editar',
-                                            ),
-                                          ],
-                                        ),
-                                        child: ExpansionTile(
-                                          shape: RoundedRectangleBorder(side: BorderSide.none, borderRadius: BorderRadius.circular(20)),
-                                          backgroundColor: colors.primary.withAlpha(10),
-                                          title: Text(color.color),
-                                          children: [
-                                            if (color.tallas != null && subcategoria!.usaTallas) ...color.tallas!.map((talla) {
-                                              return Slidable(
-                                                endActionPane: ActionPane(
-                                                  motion: const ScrollMotion(),
-                                                  children: [
-                                                    SlidableAction(
-                                                      onPressed: (context) async {
-                                                        productsController.eliminarTalla(context, producto.id, variante.id, color.id, talla.id);
-                                                      },
-                                                      backgroundColor: colors.secondary,
-                                                      icon: Icons.delete,
-                                                      label: 'Eliminar',
-                                                    ),
-                                                    SlidableAction(
-                                                      onPressed: (context) async {
-                                                        modalAgregarProductos.mostrarFormularioTalla(context, producto, variante, color, isEditing: true, talla:talla);
-                                                      },
-                                                      backgroundColor: colors.primary,
-                                                      icon: Icons.edit,
-                                                      label: 'Editar',
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: ListTile(
-                                                  title: Text('${talla.talla} - \$${talla.costo}'),
-                                                  subtitle: Text('Stock: ${talla.stock}'),
-                                                  trailing: Row(
-                                                    mainAxisSize: MainAxisSize.min,
-                                                    children: [
-                                                      IconButton(
-                                                        icon: Icon(Icons.remove),
-                                                        onPressed: talla.stock > 0 
-                                                        ? () {
-                                                            ref.read(productosProvider.notifier).actualizarStock(producto.id, variante.id, color.id, talla.id, -1);
-                                                          }
-                                                        : null,
-                                                      ),
-                                                      IconButton(
-                                                        icon: Icon(Icons.add),
-                                                        onPressed: () {
-                                                          ref.read(productosProvider.notifier).actualizarStock(producto.id, variante.id, color.id, talla.id, 1);
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              );
-                                            }).toList(),
-                                            if (!subcategoria!.usaTallas) ListTile(
-                                              title: Text('Stock: ${color.stock}'),
-                                              subtitle: Text('\$${color.costo}'),
-                                              trailing: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  IconButton(
-                                                    icon: Icon(Icons.remove),
-                                                    onPressed: color.stock! > 0 
-                                                      ? () {
-                                                        ref.read(productosProvider.notifier).actualizarStock(producto.id, variante.id, color.id, null, -1);
-                                                        }
-                                                      : null,
-                                                  ),
-                                                  IconButton(
-                                                    icon: Icon(Icons.add),
-                                                    onPressed: () {
-                                                      ref.read(productosProvider.notifier).actualizarStock(producto.id, variante.id, color.id, null, 1);
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            if (subcategoria.usaTallas)
-                                              TextButton(
-                                                onPressed: () {
-                                                  modalAgregarProductos.mostrarFormularioTalla(context, producto, variante, color, isEditing: false);
-                                                },
-                                                child: Text('Agregar Talla'),
-                                              ),
-                                          ],
-                                        ),
-                                      );
-                                    }).toList(),
-                                    TextButton(
-                                      onPressed: () {
-                                        modalAgregarProductos.mostrarFormularioColor(context, producto, variante, subcategoria!, isEditing: false);
-                                      },
-                                      child: Text('Agregar Color'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
-                            TextButton(
-                              onPressed: () {
-                                modalAgregarProductos.mostrarFormularioVariante(context, producto);
-                              },
-                              child: Text('Agregar Variante'),
-                            ),
-                          ],
-                        ),
-                      ),
-                  );
-                },
-              ),
+                    ],
+                  ),
+                );
+              },
+            ),
       ),
       floatingActionButton: Stack(
         children: [

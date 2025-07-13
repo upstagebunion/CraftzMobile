@@ -1,5 +1,9 @@
 export '../models/catalogo_productos/catalogo_productos_model.dart';
 export '../models/catalogo_productos/product_model.dart';
-export '../models/catalogo_productos/variante_color_model.dart';
+export '../models/catalogo_productos/color_model.dart';
 export '../models/catalogo_productos/variante_model.dart';
-export '../models/catalogo_productos/variante_talla_model.dart';
+export '../models/catalogo_productos/talla_model.dart';
+export '../models/catalogo_productos/calidad_model.dart';
+export '../models/catalogo_productos/config_variantes_model.dart';
+export '../models/catalogo_productos/imagen_model.dart';
+export '../models/catalogo_productos/metadata_model.dart';

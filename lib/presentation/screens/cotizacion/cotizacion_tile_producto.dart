@@ -114,11 +114,11 @@ class __ProductoTileState extends ConsumerState<ProductoTile> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.producto.variante != null)
-            Text('Variante: ${widget.producto.variante!.tipo}'),
+            Text('Variante: ${widget.producto.variante!.variante}'),
           if (widget.producto.color != null)
-            Text('Color: ${widget.producto.color!.nombre}'),
+            Text('Color: ${widget.producto.color!.color}'),
           if (widget.producto.talla != null)
-            Text('Talla: ${widget.producto.talla!.nombre}'),
+            Text('Talla: ${widget.producto.talla!.talla}'),
           if (widget.producto.extras.isNotEmpty) ...[
             const Text('Extras:', style: TextStyle(fontWeight: FontWeight.bold)),
             ...widget.producto.extras.map((extra) => 

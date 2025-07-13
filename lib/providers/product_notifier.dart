@@ -49,7 +49,7 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
-  void actualizarStock(String productoId, String varianteId, String colorId, String? tallaId, int cantidad) {
+  void actualizarStock(String productoId, String varianteId, String calidadId, String colorId, String? tallaId, int cantidad) {
     final productoIndex = state.productos.indexWhere((producto) => producto.id == productoId);
     if (productoIndex == -1) return;
 
@@ -57,36 +57,46 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
 
     final updatedVariantes = producto.variantes!.map((variante) {
       if (variante.id == varianteId) {
-        final updatedColores = variante.colores.map((color) {
-          if (color.id == colorId) {
-            if (color.stock != null) {
-              // Producto sin tallas - modificar stock directo
-              return color.copyWith(
-                stock: color.stock! + cantidad,
-                modificado: true
-              );
-            } else {
-              // Producto con tallas
-              final updatedTallas = color.tallas!.map((talla) {
-                if (talla.id == tallaId) {
-                  return talla.copyWith(
-                    stock: talla.stock + cantidad,
+        final updatedCalidades = variante.calidades.map((calidad) {
+          if (calidad.id == calidadId) {
+            final updatedColores = calidad.colores.map((color) {
+              if (color.id == colorId) {
+                if (color.stock != null) {
+                  // Producto sin tallas - modificar stock directo
+                  return color.copyWith(
+                    stock: color.stock! + cantidad,
+                    modificado: true
+                  );
+                } else {
+                  // Producto con tallas
+                  final updatedTallas = color.tallas!.map((talla) {
+                    if (talla.id == tallaId) {
+                      return talla.copyWith(
+                        stock: talla.stock + cantidad,
+                        modificado: true
+                      );
+                    }
+                    return talla;
+                  }).toList();
+                  return color.copyWith(
+                    tallas: updatedTallas,
                     modificado: true
                   );
                 }
-                return talla;
-              }).toList();
-              return color.copyWith(
-                tallas: updatedTallas,
-                modificado: true
-              );
-            }
+              }
+              return color;
+            }).toList();
+
+            return calidad.copyWith(
+              colores: updatedColores,
+              modificado: true
+            );
           }
-          return color;
+          return calidad;
         }).toList();
 
         return variante.copyWith(
-          colores: updatedColores,
+          calidades: updatedCalidades,
           modificado: true
         );
       }
@@ -123,10 +133,13 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
             modificado: false,
             variantes: p.variantes?.map((v) => v.copyWith(
               modificado: false,
-              colores: v.colores.map((c) => c.copyWith(
+              calidades: v.calidades.map((calidad) => calidad.copyWith(
                 modificado: false,
-                tallas: c.tallas?.map((t) => t.copyWith(
-                  modificado: false
+                colores: calidad.colores.map((c) => c.copyWith(
+                  modificado: false,
+                  tallas: c.tallas?.map((t) => t.copyWith(
+                    modificado: false
+                  )).toList()
                 )).toList()
               )).toList()
             )).toList()
@@ -142,9 +155,9 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
-  Future<void> agregarVariante(String productoId, String tipo) async {
+  Future<void> agregarVariante(String productoId, String? variante, int orden, {bool disponibleOnline = false}) async {
     try {
-      final response = await apiService.agregarVariante(productoId, tipo);
+      final response = await apiService.agregarVariante(productoId, variante, orden, disponibleOnline);
       final productoActualizado = Producto.fromJson(response);
       state  = CatalogoProductos(productos: 
         state.productos.map((producto) {
@@ -158,9 +171,43 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
-  Future<void> agregarColor(String productoId, String varianteId, String color, int? stock, double? costo) async {
+  Future<void> agregarCalidad(String productoId, String varianteId, String? calidad, int orden, {bool disponibleOnline = false}) async {
     try {
-      final response = await apiService.agregarColor(productoId, varianteId, color, stock, costo);
+      final response = await apiService.agregarCalidad(productoId, varianteId, calidad, orden, disponibleOnline);
+      final productoActualizado = Producto.fromJson(response);
+      state  = CatalogoProductos(productos: 
+        state.productos.map((producto) {
+          if (producto.id == productoId) {
+            return productoActualizado;
+          }
+          return producto;
+        }).toList());
+    } catch (e) {
+      throw Exception('Error al agregar la variante: $e');
+    }
+  }
+
+  Future<void> agregarColor(
+    String productoId,
+    String varianteId,
+    String calidadId,
+    String color,
+    String codigoHex,
+    int? stock,
+    double? costo,
+    int orden,
+    {bool disponibleOnline = false}
+  ) async {
+    try {
+      final response = await apiService.agregarColor(productoId,
+        varianteId,
+        calidadId,
+        color,
+        codigoHex,
+        stock,
+        costo,
+        orden,
+        disponibleOnline);
       final productoActualizado = Producto.fromJson(response);
       state  = CatalogoProductos(productos: 
         state.productos.map((producto) {
@@ -174,9 +221,32 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
-  Future<void> agregarTalla(String productoId, String varianteId, String colorId, String talla, int stock, double costo) async {
+  Future<void> agregarTalla(
+    String productoId,
+    String varianteId,
+    String calidadId,
+    String colorId,
+    String codigo,
+    String? talla,
+    int stock,
+    double costo,
+    int orden,
+    String? suk,
+    {bool disponibleOnline = false}
+  ) async {
     try {
-      final response = await apiService.agregarTalla(productoId, varianteId, colorId, talla, stock, costo);
+      final response = await apiService.agregarTalla(
+        productoId,
+        varianteId,
+        calidadId,
+        colorId,
+        codigo,
+        talla,
+        stock,
+        costo,
+        orden,
+        suk,
+        disponibleOnline);
       final productoActualizado = Producto.fromJson(response);
       state  = CatalogoProductos(productos: 
         state.productos.map((producto) {
@@ -215,9 +285,25 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
-  Future<void> eliminarColor(String productoId, String varianteId, String colorId) async {
+  Future<void> eliminarCalidad(String productoId, String varianteId, String calidadId) async {
     try {
-      final response = await apiService.eliminarColor(productoId, varianteId, colorId);
+      await apiService.eliminarCalidad(productoId, varianteId, calidadId);
+      state = CatalogoProductos(productos: state.productos.map((producto) {
+        if (producto.id == productoId) {
+          return producto.copyWith(
+            variantes: producto.variantes?.where((variante) => variante.id != varianteId).toList(),
+          );
+        }
+        return producto;
+      }).toList());
+    } catch (e) {
+      throw Exception('Error al eliminar el producto: $e');
+    }
+  }
+
+  Future<void> eliminarColor(String productoId, String varianteId, String calidadId, String colorId) async {
+    try {
+      final response = await apiService.eliminarColor(productoId, varianteId, calidadId, colorId);
       final productoActualizado = Producto.fromJson(response);
 
       // Actualizar el estado del provider
@@ -232,9 +318,9 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
-  Future<void> eliminarTalla(String productoId, String varianteId, String colorId, String tallaId) async {
+  Future<void> eliminarTalla(String productoId, String varianteId, String calidadId, String colorId, String tallaId) async {
     try {
-      final response = await apiService.eliminarTalla(productoId, varianteId, colorId, tallaId);
+      final response = await apiService.eliminarTalla(productoId, varianteId, calidadId, colorId, tallaId);
       final productoActualizado = Producto.fromJson(response);
 
       state = CatalogoProductos(productos: state.productos.map((producto) {
@@ -249,12 +335,15 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
   }
 
   Future<void> editarColor(
-    String productoId, 
-    String varianteId, 
-    String colorId, 
-    String nuevoColor, 
+    String productoId,
+    String varianteId,
+    String calidadId,
+    String colorId,
+    String nuevoColor,
+    String nuevoCodigoHex,
     int? nuevoStock,
-    double? nuevoCosto
+    double? nuevoCosto,
+    int? nuevoOrden,
   ) async {
     final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
     if (productoIndex == -1) return;
@@ -262,23 +351,38 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     final producto = state.productos[productoIndex];
     final updatedVariantes = producto.variantes?.map((variante) {
       if (variante.id == varianteId) {
-        final updatedColores = variante.colores.map((color) {
-          if (color.id == colorId) {
-            return color.copyWith(
-              color: nuevoColor,
-              stock: nuevoStock ?? color.stock,
-              costo: nuevoCosto ?? color.costo,
-              modificado: true
-            );
+        final updatedCalidades = variante.calidades.map((calidad) {
+          if (calidad.id == calidadId) {
+            final updatedColores = calidad.colores.map((color) {
+              if (color.id == colorId) {
+                return color.copyWith(
+                  color: nuevoColor,
+                  codigoHex: nuevoCodigoHex,
+                  stock: nuevoStock,
+                  costo: nuevoCosto,
+                  orden: nuevoOrden ?? color.orden,
+                  modificado: true,
+                );
+              }
+              return color;
+            }).toList();
+            return calidad.copyWith(colores: updatedColores, modificado: true);
           }
-          return color;
+          return calidad;
         }).toList();
-        return variante.copyWith(colores: updatedColores, modificado: true);
+        return variante.copyWith(calidades: updatedCalidades, modificado: true);
       }
       return variante;
     }).toList();
 
-    final updatedProducto = producto.copyWith(variantes: updatedVariantes, modificado: true);
+    final updatedProducto = producto.copyWith(
+      variantes: updatedVariantes,
+      modificado: true,
+      metadata: Metadata(
+        fechaCreacion: producto.metadata.fechaCreacion,
+        fechaActualizacion: DateTime.now(),
+      ),
+    );
     final updatedProductos = List<Producto>.from(state.productos);
     updatedProductos[productoIndex] = updatedProducto;
 
@@ -286,13 +390,17 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
   }
 
   Future<void> editarTalla(
-    String productoId, 
-    String varianteId, 
-    String colorId, 
-    String tallaId, 
-    String? nuevaTalla, 
-    int? nuevoStock,
-    double? nuevoCosto
+    String productoId,
+    String varianteId,
+    String calidadId,
+    String colorId,
+    String tallaId,
+    String nuevoCodigo,
+    String? nuevaTalla,
+    int nuevoStock,
+    double nuevoCosto,
+    int nuevoOrden,
+    String? nuevoSuk,
   ) async {
     final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
     if (productoIndex == -1) return;
@@ -300,55 +408,121 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     final producto = state.productos[productoIndex];
     final updatedVariantes = producto.variantes?.map((variante) {
       if (variante.id == varianteId) {
-        final updatedColores = variante.colores.map((color) {
-          if (color.id == colorId) {
-            final updatedTallas = color.tallas?.map((talla) {
-              if (talla.id == tallaId) {
-                return talla.copyWith(
-                  talla: nuevaTalla ?? talla.talla,
-                  stock: nuevoStock ?? talla.stock,
-                  costo: nuevoCosto ?? talla.costo,
-                  modificado: true
-                );
+        final updatedCalidades = variante.calidades.map((calidad) {
+          if (calidad.id == calidadId) {
+            final updatedColores = calidad.colores.map((color) {
+              if (color.id == colorId) {
+                final updatedTallas = color.tallas?.map((talla) {
+                  if (talla.id == tallaId) {
+                    return talla.copyWith(
+                      codigo: nuevoCodigo,
+                      talla: nuevaTalla,
+                      stock: nuevoStock,
+                      costo: nuevoCosto,
+                      orden: nuevoOrden,
+                      suk: nuevoSuk,
+                      modificado: true,
+                    );
+                  }
+                  return talla;
+                }).toList();
+                return color.copyWith(tallas: updatedTallas, modificado: true);
               }
-              return talla;
+              return color;
             }).toList();
-            return color.copyWith(tallas: updatedTallas, modificado: true);
+            return calidad.copyWith(colores: updatedColores, modificado: true);
           }
-          return color;
+          return calidad;
         }).toList();
-        return variante.copyWith(colores: updatedColores, modificado: true);
+        return variante.copyWith(calidades: updatedCalidades, modificado: true);
       }
       return variante;
     }).toList();
 
-    final updatedProducto = producto.copyWith(variantes: updatedVariantes, modificado: true);
+    final updatedProducto = producto.copyWith(
+      variantes: updatedVariantes,
+      modificado: true,
+      metadata: Metadata(
+        fechaCreacion: producto.metadata.fechaCreacion,
+        fechaActualizacion: DateTime.now(),
+      ),
+    );
     final updatedProductos = List<Producto>.from(state.productos);
     updatedProductos[productoIndex] = updatedProducto;
 
     state = CatalogoProductos(productos: updatedProductos);
   }
 
-  void editarVariante(String productoId, String varianteId, String nuevoTipo) {
+  Future<void> editarCalidad(
+    String productoId,
+    String varianteId,
+    String calidadId,
+    String? nuevaCalidad,
+    int? nuevoOrden,
+  ) async {
     final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
     if (productoIndex == -1) return;
 
     final producto = state.productos[productoIndex];
     final updatedVariantes = producto.variantes?.map((variante) {
       if (variante.id == varianteId) {
-        return variante.copyWith(tipo: nuevoTipo, modificado: true);
+        final updatedCalidades = variante.calidades.map((calidad) {
+          if (calidad.id == calidadId) {
+            return calidad.copyWith(
+              calidad: nuevaCalidad,
+              orden: nuevoOrden ?? calidad.orden,
+              modificado: true,
+            );
+          }
+          return calidad;
+        }).toList();
+        return variante.copyWith(calidades: updatedCalidades, modificado: true);
       }
       return variante;
     }).toList();
 
-    final updatedProducto = producto.copyWith(variantes: updatedVariantes, modificado: true);
+    final updatedProducto = producto.copyWith(
+      variantes: updatedVariantes,
+      modificado: true,
+      metadata: Metadata(
+        fechaCreacion: producto.metadata.fechaCreacion,
+        fechaActualizacion: DateTime.now(),
+      ),
+    );
+
     final updatedProductos = List<Producto>.from(state.productos);
     updatedProductos[productoIndex] = updatedProducto;
 
     state = CatalogoProductos(productos: updatedProductos);
   }
 
-  void editarProducto(String productoId, Map<String, dynamic> nuevosDatos) {
+  Future<void> editarVariante(String productoId, String varianteId, String? nuevaVariante, int? nuevoOrden) async {
+    final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
+    if (productoIndex == -1) return;
+
+    final producto = state.productos[productoIndex];
+    final updatedVariantes = producto.variantes?.map((variante) {
+      if (variante.id == varianteId) {
+        return variante.copyWith(variante: nuevaVariante, orden: nuevoOrden ?? variante.orden, modificado: true);
+      }
+      return variante;
+    }).toList();
+
+    final updatedProducto = producto.copyWith(
+      variantes: updatedVariantes,
+      modificado: true,
+      metadata: Metadata(
+        fechaCreacion: producto.metadata.fechaCreacion,
+        fechaActualizacion: DateTime.now(),
+      ),
+    );
+    final updatedProductos = List<Producto>.from(state.productos);
+    updatedProductos[productoIndex] = updatedProducto;
+
+    state = CatalogoProductos(productos: updatedProductos);
+  }
+
+  Future<void> editarProducto(String productoId, Map<String, dynamic> nuevosDatos) async {
     final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
     if (productoIndex == -1) return;
 
@@ -356,11 +530,15 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     final updatedProducto = producto.copyWith(
       nombre: nuevosDatos['nombre'] ?? producto.nombre,
       descripcion: nuevosDatos['descripcion'] ?? producto.descripcion,
-      categoria : nuevosDatos['categoria'] ?? producto.categoria,
-      subcategoria : nuevosDatos['subcategoria'] ?? producto.subcategoria,
-      calidad : nuevosDatos['calidad'] ?? producto.calidad,
-      corte : nuevosDatos['corte'] ?? producto.corte,
-      modificado: true
+      categoria: nuevosDatos['categoria'] ?? producto.categoria,
+      subcategoria: nuevosDatos['subcategoria'] ?? producto.subcategoria,
+      configVariantes: nuevosDatos['configVariantes'] ?? producto.configVariantes,
+      activo: nuevosDatos['activo'] ?? producto.activo,
+      modificado: true,
+      metadata: Metadata(
+        fechaCreacion: producto.metadata.fechaCreacion,
+        fechaActualizacion: DateTime.now(),
+      ),
     );
 
     final updatedProductos = List<Producto>.from(state.productos);

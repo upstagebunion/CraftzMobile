@@ -27,12 +27,13 @@ class _FormProductoScreenState extends ConsumerState<FormProductoScreen> {
 
   late TextEditingController _nombreController;
   late TextEditingController _descripcionController;
-  late TextEditingController _calidadController;
-  late TextEditingController _corteController;
 
   late CatalogoCategorias catalogoCategorias;
   String? _selectedCategoriaId;
   String? _selectedSubcategoriaId;
+  bool _usaVariantes = false;
+  bool _usaCalidades = false;
+  bool _activo = true;
 
   @override
   void initState() {
@@ -43,16 +44,13 @@ class _FormProductoScreenState extends ConsumerState<FormProductoScreen> {
     _descripcionController = TextEditingController(
       text: widget.isEditing ? widget.producto?.descripcion : ''
     );
-    _calidadController = TextEditingController(
-      text: widget.isEditing ? widget.producto?.calidad : ''
-    );
-    _corteController = TextEditingController(
-      text: widget.isEditing ? widget.producto?.corte : ''
-    );
 
-    if(widget.isEditing && widget.producto != null) {
+    if (widget.isEditing && widget.producto != null) {
       _selectedCategoriaId = widget.producto!.categoria;
       _selectedSubcategoriaId = widget.producto!.subcategoria;
+      _usaVariantes = widget.producto!.configVariantes.usaVariante;
+      _usaCalidades = widget.producto!.configVariantes.usaCalidad;
+      _activo = widget.producto!.activo;
     }
   }
 
@@ -60,8 +58,6 @@ class _FormProductoScreenState extends ConsumerState<FormProductoScreen> {
   void dispose() {
     _nombreController.dispose();
     _descripcionController.dispose();
-    _calidadController.dispose();
-    _corteController.dispose();
     super.dispose();
   }
 
@@ -73,6 +69,12 @@ class _FormProductoScreenState extends ConsumerState<FormProductoScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: Text(widget.isEditing ? 'Editar Producto' : 'Agregar Producto'),
+        actions: widget.isEditing ? [
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: _confirmarEliminacion,
+          )
+        ] : null,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -80,119 +82,255 @@ class _FormProductoScreenState extends ConsumerState<FormProductoScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(
+              // Sección de información básica
+              _buildSectionTitle('Información Básica'),
+              _buildTextFormField(
                 controller: _nombreController,
-                decoration: InputDecoration(labelText: 'Nombre'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Este campo es obligatorio';
-                  }
-                  return null;
-                },
+                label: 'Nombre',
+                isRequired: true,
               ),
-              TextFormField(
+              _buildTextFormField(
                 controller: _descripcionController,
-                decoration: InputDecoration(labelText: 'Descripción'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Este campo es obligatorio';
-                  }
-                  return null;
-                },
+                label: 'Descripción',
+                isRequired: true,
+                maxLines: 3,
               ),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Categoría'),
-                value: _selectedCategoriaId,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedCategoriaId = newValue; // Actualiza la categoría seleccionada
-                    _selectedSubcategoriaId = null; // Reinicia la subcategoría seleccionada
-                  });
-                },
-                items: catalogoCategorias.categorias.map<DropdownMenuItem<String>>((categoria) {
-                  return DropdownMenuItem<String>(
-                    value: categoria.id, // Usa el ID de la categoría como valor
-                    child: Text(categoria.nombre), // Muestra el nombre de la categoría
-                  );
-                }).toList(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Selecciona una categoría';
-                  }
-                  return null;
-                },
+              
+              // Selectores de categoría y subcategoría
+              _buildSectionTitle('Categorización'),
+              _buildCategoryDropdowns(),
+              
+              // Configuración de variantes
+              _buildSectionTitle('Configuración de Variantes'),
+              SwitchListTile(
+                title: Text('Usar Variantes'),
+                value: _usaVariantes,
+                onChanged: (value) => setState(() => _usaVariantes = value),
+                activeColor: colors.primary,
               ),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Subcategoría', labelStyle: TextStyle(color: _selectedCategoriaId != null ? colors.primary : Colors.blueGrey)),
-                value: _selectedSubcategoriaId,
-                onChanged: _selectedCategoriaId != null ? (String? newValue) {
-                  setState(() {
-                    _selectedSubcategoriaId = newValue; // Actualiza la subcategoría seleccionada
-                  });
-                } : null, // Deshabilita el dropdown si no hay categoría seleccionada
-                items: _selectedCategoriaId != null
-                    ? catalogoCategorias.categorias
-                        .firstWhere((categoria) => categoria.id == _selectedCategoriaId)
-                        .subcategorias
-                        .map<DropdownMenuItem<String>>((subcategoria) {
-                          return DropdownMenuItem<String>(
-                            value: subcategoria.id, // Usa el ID de la subcategoría como valor
-                            child: Text(subcategoria.nombre), // Muestra el nombre de la subcategoría
-                          );
-                        }).toList()
-                    : [], // Si no hay categoría seleccionada, no muestra subcategorías
-                validator: (value) {
-                  if (_selectedCategoriaId != null && (value == null || value.isEmpty)) {
-                    return 'Selecciona una subcategoría';
-                  }
-                  return null;
-                },
+              if (_usaVariantes)
+                SwitchListTile(
+                  title: Text('Usar Calidades'),
+                  value: _usaCalidades,
+                  onChanged: (value) => setState(() => _usaCalidades = value),
+                  activeColor: colors.primary,
+                ),
+              
+              // Estado del producto
+              _buildSectionTitle('Estado'),
+              SwitchListTile(
+                title: Text('Producto Activo'),
+                value: _activo,
+                onChanged: (value) => setState(() => _activo = value),
+                activeColor: colors.primary,
               ),
-              TextFormField(
-                controller: _calidadController,
-                decoration: InputDecoration(labelText: 'Calidad'),
-              ),
-              TextFormField(
-                controller: _corteController,
-                decoration: InputDecoration(labelText: 'Corte'),
-              ),
+              
+              // Botón de guardar
+              SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    final producto = {
-                      'nombre': _nombreController.text,
-                      'descripcion': _descripcionController.text,
-                      'categoria': _selectedCategoriaId,
-                      'subcategoria': _selectedSubcategoriaId,
-                      'calidad': _calidadController.text,
-                      'corte': _corteController.text,
-                      'variantes': [],
-                      'imagenes': [],
-                    };
-
-                    try {
-                      if (widget.isEditing && widget.producto != null) {
-                        ref.read(productosProvider.notifier).editarProducto(
-                          widget.producto!.id,
-                          producto
-                        );
-                      } else {
-                        await ref.read(productosProvider.notifier).agregarProducto(producto);
-                      }
-                      Navigator.pop(context, true);
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: $e')),
-                      );
-                    }
-                  }
-                },
-                child: Text(widget.isEditing ? 'Actualizar Producto' : 'Guardar Producto'),
+                onPressed: _submitForm,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16)
+                ),
+                child: Text(
+                  widget.isEditing ? 'Actualizar Producto' : 'Guardar Producto',
+                  style: TextStyle(fontSize: 16)
+                ),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey[600],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextFormField({
+    required TextEditingController controller,
+    required String label,
+    bool isRequired = false,
+    int maxLines = 1,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+        ),
+        maxLines: maxLines,
+        validator: isRequired ? (value) {
+          if (value == null || value.isEmpty) {
+            return 'Este campo es obligatorio';
+          }
+          return null;
+        } : null,
+      ),
+    );
+  }
+
+  Widget _buildCategoryDropdowns() {
+    final colors = Theme.of(context).colorScheme;
+    
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          decoration: InputDecoration(
+            labelText: 'Categoría',
+            border: OutlineInputBorder(),
+          ),
+          value: _selectedCategoriaId,
+          onChanged: (String? newValue) {
+            setState(() {
+              _selectedCategoriaId = newValue;
+              _selectedSubcategoriaId = null;
+            });
+          },
+          items: catalogoCategorias.categorias.map<DropdownMenuItem<String>>((categoria) {
+            return DropdownMenuItem<String>(
+              value: categoria.id,
+              child: Text(categoria.nombre),
+            );
+          }).toList(),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Selecciona una categoría';
+            }
+            return null;
+          },
+        ),
+        SizedBox(height: 16),
+        DropdownButtonFormField<String>(
+          decoration: InputDecoration(
+            labelText: 'Subcategoría',
+            border: OutlineInputBorder(),
+            labelStyle: TextStyle(
+              color: _selectedCategoriaId != null ? colors.primary : Colors.grey),
+          ),
+          value: _selectedSubcategoriaId,
+          onChanged: _selectedCategoriaId != null ? (String? newValue) {
+            setState(() => _selectedSubcategoriaId = newValue);
+          } : null,
+          items: _selectedCategoriaId != null
+              ? catalogoCategorias.categorias
+                  .firstWhere((categoria) => categoria.id == _selectedCategoriaId)
+                  .subcategorias
+                  .map<DropdownMenuItem<String>>((subcategoria) {
+                    return DropdownMenuItem<String>(
+                      value: subcategoria.id,
+                      child: Text(subcategoria.nombre),
+                    );
+                  }).toList()
+              : [],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Selecciona una subcategoría';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final productoData = {
+          'nombre': _nombreController.text,
+          'descripcion': _descripcionController.text,
+          'categoria': {
+            'id': _selectedCategoriaId,
+            'nombre': catalogoCategorias.categorias
+              .firstWhere((cat) => cat.id == _selectedCategoriaId).nombre,
+          },
+          'subcategoria': {
+            'id': _selectedSubcategoriaId,
+            'nombre': catalogoCategorias.categorias
+              .firstWhere((cat) => cat.id == _selectedCategoriaId)
+              .subcategorias.firstWhere((sub) => sub.id == _selectedSubcategoriaId).nombre,
+            'usaTallas': catalogoCategorias.categorias
+              .firstWhere((cat) => cat.id == _selectedCategoriaId)
+              .subcategorias.firstWhere((sub) => sub.id == _selectedSubcategoriaId).usaTallas,
+          },
+          'configVariantes': {
+            'usaVariante': _usaVariantes,
+            'usaCalidad': _usaCalidades,
+          },
+          'activo': _activo,
+          'variantes': [],
+          'imagenes': [],
+        };
+
+        if (widget.isEditing && widget.producto != null) {
+          await ref.read(productosProvider.notifier).editarProducto(
+            widget.producto!.id,
+            productoData,
+          );
+        } else {
+          await ref.read(productosProvider.notifier).agregarProducto(
+            productoData,
+          );
+        }
+
+        Navigator.pop(context, true);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmarEliminacion() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirmar eliminación'),
+        content: Text('¿Estás seguro de que quieres eliminar este producto?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await ref.read(productosProvider.notifier)
+          .eliminarProducto(widget.producto!.id);
+        Navigator.pop(context, true);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al eliminar: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

@@ -1,4 +1,7 @@
 import 'variante_model.dart';
+import 'config_variantes_model.dart';
+import 'imagen_model.dart';
+import 'metadata_model.dart';
 
 class Producto {
   final String id;
@@ -6,12 +9,11 @@ class Producto {
   final String descripcion;
   final String categoria;
   final String subcategoria;
-  final String? calidad;
-  final String? corte;
+  final ConfigVariantes configVariantes;
   final List<Variante>? variantes;
-  final List<String>? imagenes;
+  final List<Imagen>? imagenes;
   final bool activo;
-  final DateTime? fechaCreacion;
+  final Metadata metadata;
   bool modificado;
 
   Producto({
@@ -20,13 +22,12 @@ class Producto {
     required this.descripcion,
     required this.categoria,
     required this.subcategoria,
-    this.calidad,
-    this.corte,
+    required this.configVariantes,
     required this.variantes,
-    this.imagenes,
-    this.activo = true,
-    this.fechaCreacion,
-    this.modificado = false
+    required this.imagenes,
+    required this.activo,
+    required this.metadata,
+    this.modificado = false,
   });
 
   factory Producto.fromJson(Map<String, dynamic> json) {
@@ -36,15 +37,15 @@ class Producto {
       descripcion: json['descripcion'] as String,
       categoria: json['categoria'] as String,
       subcategoria: json['subcategoria'] as String,
-      calidad: json['calidad'] as String?,
-      corte: json['corte'] as String?,
-      variantes: (json['variantes'] as List)
+      configVariantes: ConfigVariantes.fromJson(json['configVariantes']),
+      variantes: (json['variantes'] as List<dynamic>)
           .map((variante) => Variante.fromJson(variante))
           .toList(),
-      imagenes:
-          (json['imagenes'] as List?)?.map((imagen) => imagen as String).toList(),
-      activo: json['activo'] as bool? ?? true,
-      fechaCreacion: json['fechaCreacion'] != null ? DateTime.parse(json['fechaCreacion']) : null,
+      imagenes: (json['imagenes'] as List<dynamic>)
+          .map((imagen) => Imagen.fromJson(imagen))
+          .toList(),
+      activo: json['activo'] as bool,
+      metadata: Metadata.fromJson(json['metadata']),
     );
   }
 
@@ -55,16 +56,25 @@ class Producto {
       'descripcion': descripcion,
       'categoria': categoria,
       'subcategoria': subcategoria,
-      'calidad': calidad,
-      'corte': corte,
-      'variantes': variantes?.map((variante) => variante.toJson()).toList(),
-      'imagenes': imagenes,
+      'configVariantes': configVariantes.toJson(),
+      'variantes': variantes?.map((v) => v.toJson()).toList(),
+      'imagenes': imagenes?.map((img) => img.toJson()).toList(),
       'activo': activo,
-      'fechaCreacion': fechaCreacion != null ? fechaCreacion?.toIso8601String() : null,
+      'metadata': metadata.toJson(),
     };
   }
 
-  Producto copyWith({List<Variante>? variantes, String? nombre, String? descripcion, String? categoria, String? subcategoria, String? calidad, String? corte, bool? modificado}) {
+  Producto copyWith({
+    List<Variante>? variantes,
+    String? nombre,
+    String? descripcion,
+    String? categoria,
+    String? subcategoria,
+    ConfigVariantes? configVariantes,
+    List<Imagen>? imagenes,
+    Metadata? metadata,
+    bool? activo,
+    bool? modificado}) {
     final variantesModificadas = variantes?.any((v) => v.modificado) ?? 
                                this.variantes?.any((v) => v.modificado) ?? false;
     return Producto(
@@ -73,13 +83,12 @@ class Producto {
       descripcion: descripcion ?? this.descripcion,
       categoria: categoria ?? this.categoria,
       subcategoria: subcategoria ?? this.subcategoria,
-      calidad: calidad ?? this.calidad,
-      corte: corte ?? this.corte,
+      configVariantes: configVariantes ?? this.configVariantes,
       variantes: variantes ?? this.variantes,
-      imagenes: this.imagenes,
-      activo: this.activo,
-      fechaCreacion: this.fechaCreacion,
-      modificado: modificado ?? variantesModificadas
+      imagenes: imagenes ?? this.imagenes,
+      activo: activo ?? this.activo,
+      metadata: metadata ?? this.metadata,
+      modificado: modificado ?? variantesModificadas,
     );
   }
 }

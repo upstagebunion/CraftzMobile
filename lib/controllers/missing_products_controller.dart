@@ -12,12 +12,14 @@ class MissingProductsController {
     final productos = catalogoProductos.productos.where((producto) => producto.subcategoria == subcategoria.id);
     final productosFiltrados = productos.where((producto) {
       return producto.variantes?.any((variante) {
-        return variante.colores.any((color) {
-          if (subcategoria.usaTallas) {
-            return color.tallas?.any((talla) => talla.stock < 2) ?? false;
-          } else {
-            return color.stock != null && color.stock! < 2;
-          }
+        return variante.calidades.any((calidad) {
+          return calidad.colores.any((color) {
+            if (subcategoria.usaTallas) {
+              return color.tallas?.any((talla) => talla.stock < 2) ?? false;
+            } else {
+              return color.stock != null && color.stock! < 2;
+            }
+          });
         });
       }) ?? false;
     }).toList();
@@ -35,12 +37,14 @@ class MissingProductsController {
   // Método para obtener el stock mínimo de un producto
   int _obtenerStockMinimo(Producto producto, bool usaTallas) {
     if (usaTallas) {
-      return producto.variantes?.expand((variante) => variante.colores)
+      return producto.variantes?.expand((variante) => variante.calidades)
+          .expand((calidad) => calidad.colores)
           .expand((color) => color.tallas ?? [])
           .map((talla) => talla.stock)
           .reduce((a, b) => a < b ? a : b) ?? 0;
     } else {
-      return producto.variantes?.expand((variante) => variante.colores)
+      return producto.variantes?.expand((variante) => variante.calidades)
+          .expand((calidad) => calidad.colores)
           .map((color) => color.stock ?? 0)
           .reduce((a, b) => a < b ? a : b) ?? 0;
     }

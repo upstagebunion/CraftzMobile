@@ -44,7 +44,7 @@ class CategoriesNotifier extends StateNotifier<CatalogoCategorias> {
     final categoria = getCategoria(producto);
     if (categoria != null) {
       return categoria.subcategorias.firstWhereOrNull(
-        (subcategoria) => subcategoria.id == producto.subcategoria // Retorna null si no se encuentra la subcategoría
+        (subcategoria) => subcategoria.id == producto.subcategoria// Retorna null si no se encuentra la subcategoría
       );
     }
     return null;

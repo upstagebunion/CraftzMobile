@@ -1,39 +1,60 @@
-import 'variante_color_model.dart';
+import 'calidad_model.dart';
 
 class Variante {
   final String id;
-  final String? tipo;
-  final List<Color> colores;
+  final String? variante;
+  final bool disponibleOnline;
+  final int orden;
+  final List<Calidad> calidades;
   bool modificado;
 
-  Variante({required this.id, this.tipo, required this.colores, this.modificado = false});
+  Variante({
+    required this.id,
+    this.variante,
+    required this.disponibleOnline,
+    required this.orden,
+    required this.calidades,
+    this.modificado = false,
+  });
 
   factory Variante.fromJson(Map<String, dynamic> json) {
     return Variante(
       id: json['_id'] as String,
-      tipo: json['tipo'] as String?,
-      colores: (json['colores'] as List)
-          .map((color) => Color.fromJson(color))
-          .toList()
+      variante: json['variante'] as String?,
+      disponibleOnline: json['disponibleOnline'] as bool,
+      orden: (json['orden'] as num).toInt(),
+      calidades: (json['calidad'] as List<dynamic>) // <-- CAMBIO CLAVE
+          .map((c) => Calidad.fromJson(c))
+          .toList(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       '_id': id,
-      'tipo': tipo,
-      'colores': colores.map((color) => color.toJson()).toList(),
+      'variante': variante,
+      'disponibleOnline': disponibleOnline,
+      'orden': orden,
+      'calidades': calidades.map((c) => c.toJson()).toList(),
     };
   }
 
-  Variante copyWith({List<Color>? colores, String? tipo, bool? modificado}) {
-    final coloresModificados = colores?.any((c) => c.modificado) ?? 
-                             this.colores.any((c) => c.modificado);
+   Variante copyWith({
+    String? variante,
+    bool? disponibleOnline,
+    int? orden,
+    List<Calidad>? calidades,
+    bool? modificado,
+  }) {
+    final calidadModificada = calidades?.any((c) => c.modificado) ?? this.calidades.any((c) => c.modificado);
+
     return Variante(
       id: this.id,
-      colores: colores ?? this.colores,
-      tipo: tipo ?? this.tipo,
-      modificado: modificado ?? coloresModificados
-      );
+      variante: variante ?? this.variante,
+      disponibleOnline: disponibleOnline ?? this.disponibleOnline,
+      orden: orden ?? this.orden,
+      calidades: calidades ?? this.calidades,
+      modificado: modificado ?? calidadModificada,
+    );
   }
 }

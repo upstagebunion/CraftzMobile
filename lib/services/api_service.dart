@@ -70,7 +70,7 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> agregarVariante(String productoId, String tipo) async {
+  Future<Map<String, dynamic>> agregarVariante(String productoId, String? variante, int orden, bool disponibleOnline) async {
     String? token = await getToken();
 
     final response = await http.post(
@@ -80,7 +80,9 @@ class ApiService {
         'Authorization': '$token',
       },
       body: jsonEncode({
-        'tipo': tipo,
+        'variante': variante,
+        'orden': orden,
+        'disponibleOnline': disponibleOnline
       }),
     );
 
@@ -92,19 +94,62 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> agregarColor(String productoId, String varianteId, String color, int? stock, double? costo) async {
+  Future<Map<String, dynamic>> agregarCalidad(
+    String productoId,
+    String varianteId,
+    String? calidad,
+    int orden,
+    bool disponibleOnline
+  ) async {
     String? token = await getToken();
 
     final response = await http.post(
-      Uri.parse('$baseUrl/api/productos/$productoId/$varianteId/color'),
+      Uri.parse('$baseUrl/api/productos/$productoId/$varianteId/calidad'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      },
+      body: jsonEncode({
+        'calidad': calidad,
+        'orden': orden,
+        'disponibleOnline': disponibleOnline, 
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final errorData = jsonDecode(response.body);
+      throw Exception(errorData['message'] ?? 'Error al agregar calidad');
+    }
+  }
+
+  Future<Map<String, dynamic>> agregarColor(
+    String productoId,
+    String varianteId,
+    String calidadId,
+    String color,
+    String codigoHex,
+    int? stock,
+    double? costo,
+    int orden,
+    bool disponibleOnline
+    ) async {
+    String? token = await getToken();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/productos/$productoId/$varianteId/$calidadId/color'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': '$token',
       },
       body: jsonEncode({
         'color': color,
+        'codigoHex': codigoHex,
         'stock': stock,
         'costo': costo,
+        'orden': orden,
+        'disponibleOnline': disponibleOnline,
       }),
     );
 
@@ -116,19 +161,35 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> agregarTalla(String productoId, String varianteId, String colorId, String talla, int? stock, double? costo) async {
+  Future<Map<String, dynamic>> agregarTalla(
+    String productoId,
+    String varianteId,
+    String calidadId,
+    String colorId,
+    String codigo,
+    String? talla,
+    int stock,
+    double costo,
+    int orden,
+    String? suk,
+    bool disponibleOnline
+  ) async {
     String? token = await getToken();
 
     final response = await http.post(
-      Uri.parse('$baseUrl/api/productos/$productoId/$varianteId/$colorId/talla'),
+      Uri.parse('$baseUrl/api/productos/$productoId/$varianteId/$calidadId/$colorId/talla'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': '$token',
       },
       body: jsonEncode({
+        'codigo': codigo,
         'talla': talla,
         'stock': stock,
         'costo': costo,
+        'orden': orden,
+        'suk': suk,
+        'disponibleOnline': disponibleOnline
       }),
     );
 
@@ -178,11 +239,30 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> eliminarColor(String productoId, String varianteId, String colorId) async {
+  Future<void> eliminarCalidad(String productoId, String varianteId, String calidadId) async {
+    String? token = await getToken();
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/productos/$productoId/$varianteId/$calidadId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+      }
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final String mensaje = jsonDecode(response.body)['message'];
+      throw 'Error al agregar talla: ${mensaje}';
+    }
+  }
+
+  Future<Map<String, dynamic>> eliminarColor(String productoId, String varianteId, String calidadId, String colorId) async {
   String? token = await getToken();
 
   final response = await http.delete(
-    Uri.parse('$baseUrl/api/productos/$productoId/$varianteId/$colorId'),
+    Uri.parse('$baseUrl/api/productos/$productoId/$varianteId/$calidadId/$colorId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': '$token',
@@ -197,11 +277,11 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> eliminarTalla(String productoId, String varianteId, String colorId, String tallaId) async {
+  Future<Map<String, dynamic>> eliminarTalla(String productoId, String varianteId, String calidadId, String colorId, String tallaId) async {
     String? token = await getToken();
 
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/productos/$productoId/$varianteId/$colorId/$tallaId'),
+      Uri.parse('$baseUrl/api/productos/$productoId/$varianteId/$calidadId/$colorId/$tallaId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': '$token',

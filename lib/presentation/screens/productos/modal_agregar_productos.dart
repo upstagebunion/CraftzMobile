@@ -12,7 +12,9 @@ class ModalAgregarProductos {
 
   // Método para mostrar el formulario de agregar variante
   void mostrarFormularioVariante(BuildContext context, Producto producto, {bool isEditing = false, Variante? variante}) {
-    final TextEditingController tipoController = TextEditingController(text: isEditing && variante?.tipo != null ? variante!.tipo.toString() : '');
+    final TextEditingController nombreVarianteController = TextEditingController(text: isEditing && variante?.variante != null ? variante!.variante.toString() : '');
+    final TextEditingController ordenController = TextEditingController(
+        text: isEditing ? variante?.orden.toString() : '0');
 
     showModalBottomSheet(
       context: context,
@@ -28,31 +30,117 @@ class ModalAgregarProductos {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
-                  controller: tipoController,
-                  decoration: InputDecoration(labelText: 'Tipo de Variante'),
+                  controller: nombreVarianteController,
+                  decoration: InputDecoration(
+                    labelText: 'Nombre de Variante',
+                    hintText: 'Dejar vacío para variante única'
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: ordenController,
+                  decoration: InputDecoration(
+                    labelText: 'Orden',
+                  ),
+                  keyboardType: TextInputType.number,
                 ),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  final nuevoTipo = tipoController.text.trim();
-                  if (nuevoTipo.isNotEmpty) {
+                  final nombre = nombreVarianteController.text.trim();
+                  final orden = int.tryParse(ordenController.text) ?? 0;
                     try {
                       isEditing 
-                      ? ref.read(productosProvider.notifier).editarVariante(
+                      ? await ref.read(productosProvider.notifier).editarVariante(
                         producto.id,
                         variante!.id,
-                        nuevoTipo,
+                        nombre.isEmpty ? null : nombre,
+                        orden
                       )
-                      : await ref.read(productosProvider.notifier).agregarVariante(producto.id, nuevoTipo);
+                      : await ref.read(productosProvider.notifier).agregarVariante(producto.id, nombre.isEmpty ? null : nombre, orden);
                       Navigator.pop(context);
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Error: $e')),
                       );
                     }
+                },
+                child: Text(isEditing ? 'Actualizar Variante' : 'Agregar Variante'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  void mostrarFormularioCalidad(BuildContext context, Producto producto, Variante variante,
+      {bool isEditing = false, Calidad? calidad}) {
+    final TextEditingController nombreController = TextEditingController(
+        text: isEditing ? calidad?.calidad : '');
+    final TextEditingController ordenController = TextEditingController(
+        text: isEditing ? calidad?.orden.toString() : '0');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: nombreController,
+                  decoration: InputDecoration(
+                    labelText: 'Nombre de Calidad',
+                    hintText: 'Dejar vacío para calidad única'
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: ordenController,
+                  decoration: InputDecoration(
+                    labelText: 'Orden',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final nombre = nombreController.text.trim();
+                  final orden = int.tryParse(ordenController.text) ?? 0;
+                  try {
+                    isEditing
+                      ? await ref.read(productosProvider.notifier).editarCalidad(
+                          producto.id,
+                          variante.id,
+                          calidad!.id,
+                          nombre.isEmpty ? null : nombre,
+                          orden,
+                        )
+                      : await ref.read(productosProvider.notifier).agregarCalidad(
+                          producto.id,
+                          variante.id,
+                          nombre.isEmpty ? null : nombre,
+                          orden,
+                        );
+                    Navigator.pop(context);
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
                   }
                 },
-                child: Text('Guardar Variante'),
+                child: Text(isEditing ? 'Actualizar Calidad' : 'Agregar Calidad'),
               ),
             ],
           ),
@@ -62,10 +150,17 @@ class ModalAgregarProductos {
   }
 
   // Método para mostrar el formulario de agregar color
-  void mostrarFormularioColor(BuildContext context, Producto producto, Variante variante, Subcategoria subcategoria, {bool isEditing = false, Color? color}) {
-    final TextEditingController colorController = TextEditingController(text: isEditing ? color?.color : '');
-    final TextEditingController stockController = TextEditingController(text: isEditing && color?.stock != null ? color!.stock.toString() : '');
-    final TextEditingController costoController = TextEditingController(text: isEditing && color?.costo != null ? color!.costo.toString() : '');
+  void mostrarFormularioColor(BuildContext context, Producto producto, Variante variante, Calidad calidad, Subcategoria subcategoria, {bool isEditing = false, Color? color}) {
+    final TextEditingController nombreColorController = TextEditingController(
+        text: isEditing ? color?.color : '');
+    final TextEditingController hexController = TextEditingController(
+        text: isEditing ? color?.codigoHex : '#FFFFFF');
+    final TextEditingController stockController = TextEditingController(
+        text: isEditing && color?.stock != null ? color!.stock.toString() : '0');
+    final TextEditingController costoController = TextEditingController(
+        text: isEditing && color?.costo != null ? color!.costo.toString() : '0.0');
+    final TextEditingController ordenController = TextEditingController(
+        text: isEditing ? color?.orden.toString() : '0');
     final bool usaTallas = subcategoria.usaTallas;
 
     showModalBottomSheet(
@@ -83,11 +178,18 @@ class ModalAgregarProductos {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
-                    controller: colorController,
+                    controller: nombreColorController,
                     decoration: InputDecoration(labelText: 'Nombre del Color'),
                   ),
                 ),
-                if (!usaTallas)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: hexController,
+                    decoration: InputDecoration(labelText: 'Código HEX'),
+                  ),
+                ),
+                if (!usaTallas)...[
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: TextField(
@@ -96,45 +198,67 @@ class ModalAgregarProductos {
                       keyboardType: TextInputType.number,
                     ),
                   ),
-                if (!usaTallas)
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: TextField(
                       controller: costoController,
                       decoration: InputDecoration(labelText: 'Costo'),
-                      keyboardType: TextInputType.number,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                     ),
                   ),
+                ],
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: ordenController,
+                    decoration: InputDecoration(labelText: 'Orden'),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
                 ElevatedButton(
                   onPressed: () async {
-                    final nuevoColor = colorController.text.trim();
-                    if (nuevoColor.isNotEmpty) {
-                      try {
-                        isEditing 
-                        ? await ref.read(productosProvider.notifier).editarColor(
-                          producto.id,
-                          variante.id,
-                          color!.id,
-                          nuevoColor,
-                          !usaTallas ? int.parse(stockController.text) : null,
-                          !usaTallas ? double.parse(costoController.text) : null
-                        )
-                        : await ref.read(productosProvider.notifier).agregarColor(
-                          producto.id,
-                          variante.id,
-                          nuevoColor,
-                          !usaTallas ? int.parse(stockController.text) : null,
-                          !usaTallas ? double.parse(costoController.text) : null,
-                        );
-                        Navigator.pop(context);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
-                      }
+                    final nombre = nombreColorController.text.trim();
+                    final hex = hexController.text.trim();
+                    final orden = int.tryParse(ordenController.text) ?? 0;
+
+                    if (nombre.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('El nombre del color es requerido')),
+                      );
+                      return;
+                    }
+
+                    try {
+                      isEditing 
+                      ? await ref.read(productosProvider.notifier).editarColor(
+                        producto.id,
+                        variante.id,
+                        calidad.id,
+                        color!.id,
+                        nombre,
+                        hex,
+                        subcategoria.usaTallas ? null : int.parse(stockController.text),
+                        subcategoria.usaTallas ? null : double.parse(costoController.text),
+                        orden,
+                      )
+                      : await ref.read(productosProvider.notifier).agregarColor(
+                        producto.id,
+                        variante.id,
+                        calidad.id,
+                        nombre,
+                        hex,
+                        subcategoria.usaTallas ? null : int.parse(stockController.text),
+                        subcategoria.usaTallas ? null : double.parse(costoController.text),
+                        orden,
+                      );
+                      Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: $e')),
+                      );
                     }
                   },
-                  child: Text('Guardar Color'),
+                  child: Text(isEditing ? 'Actualizar Color' : 'Agregar Color'),
                 ),
               ],
             ),
@@ -145,10 +269,19 @@ class ModalAgregarProductos {
   }
 
   // Método para mostrar el formulario de agregar talla
-  void mostrarFormularioTalla(BuildContext context, Producto producto, Variante variante, Color color, {bool isEditing = false, Talla? talla}) {
-    final TextEditingController tallaController = TextEditingController(text: isEditing ? talla?.talla : '');
-    final TextEditingController stockController = TextEditingController(text: isEditing && talla?.stock != null ? talla!.stock.toString() : '');
-    final TextEditingController costoController = TextEditingController(text: isEditing && talla?.costo != null ? talla!.costo.toString() : '');
+  void mostrarFormularioTalla(BuildContext context, Producto producto, Variante variante, Calidad calidad, Color color, {bool isEditing = false, Talla? talla}) {
+    final TextEditingController skuController = TextEditingController(
+        text: isEditing ? talla?.talla : '');
+    final TextEditingController codigoController = TextEditingController(
+        text: isEditing ? talla?.codigo : '');
+    final TextEditingController nombreController = TextEditingController(
+        text: isEditing ? talla?.talla : '');
+    final TextEditingController stockController = TextEditingController(
+        text: isEditing ? talla?.stock.toString() : '0');
+    final TextEditingController costoController = TextEditingController(
+        text: isEditing ? talla?.costo.toString() : '0.0');
+    final TextEditingController ordenController = TextEditingController(
+        text: isEditing ? talla?.orden.toString() : '0');
 
     showModalBottomSheet(
       context: context,
@@ -165,8 +298,22 @@ class ModalAgregarProductos {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
-                    controller: tallaController,
-                    decoration: InputDecoration(labelText: 'Talla'),
+                    controller: skuController,
+                    decoration: InputDecoration(labelText: 'SKU'),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: codigoController,
+                    decoration: InputDecoration(labelText: 'Código (ej. "CH", "M")'),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: nombreController,
+                    decoration: InputDecoration(labelText: 'Nombre (ej. "Chica", "Mediana")'),
                   ),
                 ),
                 Padding(
@@ -182,41 +329,63 @@ class ModalAgregarProductos {
                   child: TextField(
                     controller: costoController,
                     decoration: InputDecoration(labelText: 'Costo'),
+                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: ordenController,
+                    decoration: InputDecoration(labelText: 'Orden'),
                     keyboardType: TextInputType.number,
                   ),
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    final nuevaTalla = tallaController.text.trim();
-                    if (nuevaTalla.isNotEmpty) {
-                      try {
-                        isEditing 
-                        ? await ref.read(productosProvider.notifier).editarTalla(
+                    final codigo = codigoController.text.trim();
+
+                    if (codigo.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('El código es requerido')),
+                      );
+                      return;
+                    }
+                    
+                    try {
+                      isEditing 
+                      ? await ref.read(productosProvider.notifier).editarTalla(
                           producto.id,
                           variante.id,
+                          calidad.id,
                           color.id,
                           talla!.id,
-                          nuevaTalla, 
-                          int.parse(stockController.text),
-                          double.parse(costoController.text)
-                          )
-                        : await ref.read(productosProvider.notifier).agregarTalla(
-                          producto.id,
-                          variante.id,
-                          color.id,
-                          nuevaTalla,
+                          codigo,
+                          nombreController.text.trim(),
                           int.parse(stockController.text),
                           double.parse(costoController.text),
-                        );
-                        Navigator.pop(context);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
-                      }
+                          int.parse(ordenController.text),
+                          skuController.text.trim()
+                        )
+                      : await ref.read(productosProvider.notifier).agregarTalla(
+                          producto.id,
+                          variante.id,
+                          calidad.id,
+                          color.id,
+                          codigo,
+                          nombreController.text.trim(),
+                          int.parse(stockController.text),
+                          double.parse(costoController.text),
+                          int.parse(ordenController.text),
+                          skuController.text.trim()
+                      );
+                      Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: $e')),
+                      );
                     }
                   },
-                  child: Text('Guardar Talla'),
+                  child: Text(isEditing ? 'Actualizar Talla' : 'Agregar Talla'),
                 ),
               ],
             ),
