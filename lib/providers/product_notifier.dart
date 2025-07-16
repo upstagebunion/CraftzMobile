@@ -155,7 +155,11 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     }
   }
 
-  Future<void> agregarVariante(String productoId, String? variante, int orden, {bool disponibleOnline = false}) async {
+  Future<void> agregarVariante(
+    String productoId,
+    String? variante,
+    int orden,
+    {bool disponibleOnline = false}) async {
     try {
       final response = await apiService.agregarVariante(productoId, variante, orden, disponibleOnline);
       final productoActualizado = Producto.fromJson(response);
@@ -344,6 +348,7 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     int? nuevoStock,
     double? nuevoCosto,
     int? nuevoOrden,
+    bool disponibleOnline
   ) async {
     final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
     if (productoIndex == -1) return;
@@ -362,6 +367,7 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
                   costo: nuevoCosto,
                   orden: nuevoOrden ?? color.orden,
                   modificado: true,
+                  disponibleOnline: disponibleOnline
                 );
               }
               return color;
@@ -401,6 +407,7 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     double nuevoCosto,
     int nuevoOrden,
     String? nuevoSuk,
+    bool disponibleOnline
   ) async {
     final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
     if (productoIndex == -1) return;
@@ -422,6 +429,7 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
                       orden: nuevoOrden,
                       suk: nuevoSuk,
                       modificado: true,
+                      disponibleOnline: disponibleOnline
                     );
                   }
                   return talla;
@@ -459,6 +467,7 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     String calidadId,
     String? nuevaCalidad,
     int? nuevoOrden,
+    bool disponibleOnline
   ) async {
     final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
     if (productoIndex == -1) return;
@@ -472,6 +481,7 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
               calidad: nuevaCalidad,
               orden: nuevoOrden ?? calidad.orden,
               modificado: true,
+              disponibleOnline: disponibleOnline
             );
           }
           return calidad;
@@ -496,14 +506,25 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
     state = CatalogoProductos(productos: updatedProductos);
   }
 
-  Future<void> editarVariante(String productoId, String varianteId, String? nuevaVariante, int? nuevoOrden) async {
+  Future<void> editarVariante(
+    String productoId,
+    String varianteId,
+    String? nuevaVariante,
+    int? nuevoOrden,
+    bool? disponibleOnline
+    ) async {
     final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
     if (productoIndex == -1) return;
 
     final producto = state.productos[productoIndex];
     final updatedVariantes = producto.variantes?.map((variante) {
       if (variante.id == varianteId) {
-        return variante.copyWith(variante: nuevaVariante, orden: nuevoOrden ?? variante.orden, modificado: true);
+        return variante.copyWith(
+          variante: nuevaVariante,
+          orden: nuevoOrden ?? variante.orden,
+          modificado: true,
+          disponibleOnline: disponibleOnline ?? variante.disponibleOnline
+        );
       }
       return variante;
     }).toList();

@@ -319,7 +319,11 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     ProductsController productsController = ProductsController(ref);
     final ColorScheme colors = Theme.of(context).colorScheme;
     final CatalogoCategorias categorias = ref.watch(proveedorCategorias.categoriesProvider);
-    modalAgregarProductos = ModalAgregarProductos(ref, categorias);
+    modalAgregarProductos = ModalAgregarProductos(ref,
+      categorias,
+      colors,
+      () {setState((){});}
+    );
     final currentContext = context;
     // Obtenemos el estado de carga
     final isLoading = ref.watch(isLoadingProvider) || ref.watch(proveedorCategorias.isLoadingCategories);

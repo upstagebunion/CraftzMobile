@@ -23,7 +23,7 @@ class Variante {
       variante: json['variante'] as String?,
       disponibleOnline: json['disponibleOnline'] as bool,
       orden: (json['orden'] as num).toInt(),
-      calidades: (json['calidad'] as List<dynamic>) // <-- CAMBIO CLAVE
+      calidades: (json['calidades'] as List<dynamic>) // <-- CAMBIO CLAVE
           .map((c) => Calidad.fromJson(c))
           .toList(),
     );

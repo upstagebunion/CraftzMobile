@@ -45,13 +45,10 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
       }
     }
 
-    
-
     return Container(
       padding: const EdgeInsets.all(16),
       height: MediaQuery.of(context).size.height * 0.8,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             widget.producto.nombre,

@@ -1,5 +1,3 @@
-
-
 import 'package:craftz_app/data/models/cotizacion/descuento_model.dart';
 import 'package:craftz_app/data/models/cotizacion/producto_cotizado_model.dart';
 

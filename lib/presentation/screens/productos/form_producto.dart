@@ -108,13 +108,12 @@ class _FormProductoScreenState extends ConsumerState<FormProductoScreen> {
                 onChanged: (value) => setState(() => _usaVariantes = value),
                 activeColor: colors.primary,
               ),
-              if (_usaVariantes)
-                SwitchListTile(
-                  title: Text('Usar Calidades'),
-                  value: _usaCalidades,
-                  onChanged: (value) => setState(() => _usaCalidades = value),
-                  activeColor: colors.primary,
-                ),
+              SwitchListTile(
+                title: Text('Usar Calidades'),
+                value: _usaCalidades,
+                onChanged: (value) => setState(() => _usaCalidades = value),
+                activeColor: colors.primary,
+              ),
               
               // Estado del producto
               _buildSectionTitle('Estado'),
@@ -253,20 +252,8 @@ class _FormProductoScreenState extends ConsumerState<FormProductoScreen> {
         final productoData = {
           'nombre': _nombreController.text,
           'descripcion': _descripcionController.text,
-          'categoria': {
-            'id': _selectedCategoriaId,
-            'nombre': catalogoCategorias.categorias
-              .firstWhere((cat) => cat.id == _selectedCategoriaId).nombre,
-          },
-          'subcategoria': {
-            'id': _selectedSubcategoriaId,
-            'nombre': catalogoCategorias.categorias
-              .firstWhere((cat) => cat.id == _selectedCategoriaId)
-              .subcategorias.firstWhere((sub) => sub.id == _selectedSubcategoriaId).nombre,
-            'usaTallas': catalogoCategorias.categorias
-              .firstWhere((cat) => cat.id == _selectedCategoriaId)
-              .subcategorias.firstWhere((sub) => sub.id == _selectedSubcategoriaId).usaTallas,
-          },
+          'categoria':  _selectedCategoriaId,
+          'subcategoria': _selectedSubcategoriaId,
           'configVariantes': {
             'usaVariante': _usaVariantes,
             'usaCalidad': _usaCalidades,
