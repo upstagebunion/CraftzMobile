@@ -118,13 +118,38 @@ class _ListaComprasScreenState extends ConsumerState<ListaComprasScreen> {
   }
 
   Widget _buildProductTile(Producto product, bool usesSizes) {
-    final lowStockItems = _getLowStockItems(product, usesSizes);
-    
+    final groupedItems = _groupLowStockItems(product, usesSizes);
+  
     return ExpansionTile(
       title: Text(product.nombre),
-      subtitle: Text('${lowStockItems.length} variantes con stock bajo'),
-      children: lowStockItems.map((item) {
-        return _buildLowStockItemTile(item, usesSizes);
+      subtitle: Text('${_countTotalLowStockItems(groupedItems)} variantes con stock bajo'),
+      children: groupedItems.entries.map((variantEntry) {
+        // Expansión por variante
+        return ExpansionTile(
+          title: Text(variantEntry.key),
+          children: variantEntry.value.entries.expand((qualityEntry) {
+            // Widgets para cada calidad (no expandible)
+            return [
+              // Divider/Header de calidad
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Text(
+                  qualityEntry.key,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              // Items de esta calidad
+              ...qualityEntry.value.map((item) => _buildLowStockItemTile(item, usesSizes)),
+              // Separador entre calidades (excepto después de la última)
+              if (qualityEntry.key != variantEntry.value.keys.last)
+                const Divider(height: 1, thickness: 1),
+            ];
+          }).toList(),
+        );
       }).toList(),
     );
   }
@@ -196,6 +221,40 @@ class _ListaComprasScreenState extends ConsumerState<ListaComprasScreen> {
     
     return items;
   }
+
+  int _countTotalLowStockItems(Map<String, Map<String, List<LowStockItem>>> groupedItems) {
+    return groupedItems.values.fold(0, (total, qualities) {
+      return total + qualities.values.fold(0, (sum, items) => sum + items.length);
+    });
+  }
+
+  Map<String, Map<String, List<LowStockItem>>> _groupLowStockItems(Producto product, bool usesSizes) {
+    final items = _getLowStockItems(product, usesSizes);
+    final Map<String, Map<String, List<LowStockItem>>> groupedItems = {};
+
+    for (final item in items) {
+      if (!groupedItems.containsKey(item.variantName)) {
+        groupedItems[item.variantName ?? 'Sin variante definida'] = {};
+      }
+      
+      if (!groupedItems[item.variantName]!.containsKey(item.qualityName)) {
+        groupedItems[item.variantName]![item.qualityName ?? 'Sin calidad definida'] = [];
+      }
+      
+      groupedItems[item.variantName]![item.qualityName]!.add(item);
+    }
+
+    return groupedItems;
+  }
+
+  // Función para construir los ítems individuales (puedes personalizarla)
+ /* Widget _buildLowStockItemTile(LowStockItem item, bool usesSizes) {
+    return ListTile(
+      title: Text(usesSizes ? '${item.colorName} - Talla ${item.sizeName}' : item.colorName),
+      subtitle: Text('Stock: ${item.currentStock}'),
+      trailing: Text('Sugerido: ${item.suggestedPurchase}'),
+    );
+  }*/
 }
 
 class LowStockItem {

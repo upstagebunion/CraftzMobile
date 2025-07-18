@@ -45,53 +45,55 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
       }
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      height: MediaQuery.of(context).size.height * 0.8,
-      child: Column(
-        children: [
-          Text(
-            widget.producto.nombre,
-            style: textTheme.titleLarge,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          
-          // Selector de variante (si tiene)
-          if (usaVariantes)
-            _buildVarianteSelector(),
-          
-          if (usaCalidades && varianteSeleccionada != null && varianteSeleccionada!.calidades.isNotEmpty)
-            _buildCalidadSelector(),
-          
-          // Selector de color (si tiene)
-          if ((varianteSeleccionada != null && calidadSeleccionada != null && calidadSeleccionada!.colores.isNotEmpty))
-            _buildColorSelector(usaTallas),
-          
-          // Selector de talla (si la subcategoría usa tallas)
-          if (usaTallas)
-            if (colorSeleccionado?.tallas?.isNotEmpty ?? false)
-              _buildTallaSelector(),
-          
-          // Selector de cantidad
-          _buildCantidadSelector(),
-
-          if(_tieneSeleccionCompleta(usaTallas))
-            _buildStockVerification(usaTallas),
-
-          const Spacer(),
-            
-          // Botón para agregar
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor:colors.primary,
-              foregroundColor: colors.onPrimary,
-              padding: const EdgeInsets.symmetric(vertical: 16)
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        height: MediaQuery.of(context).size.height * 0.8,
+        child: Column(
+          children: [
+            Text(
+              widget.producto.nombre,
+              style: textTheme.titleLarge,
+              textAlign: TextAlign.center,
             ),
-            onPressed: _puedeAgregar(usaTallas) ? () => _agregarProducto(ref) : null,
-            child: const Text('Agregar a cotización'),
-          ),
-        ],
+            const SizedBox(height: 16),
+            
+            // Selector de variante (si tiene)
+            if (usaVariantes)
+              _buildVarianteSelector(),
+            
+            if (usaCalidades && varianteSeleccionada != null && varianteSeleccionada!.calidades.isNotEmpty)
+              _buildCalidadSelector(),
+            
+            // Selector de color (si tiene)
+            if ((varianteSeleccionada != null && calidadSeleccionada != null && calidadSeleccionada!.colores.isNotEmpty))
+              _buildColorSelector(usaTallas),
+            
+            // Selector de talla (si la subcategoría usa tallas)
+            if (usaTallas)
+              if (colorSeleccionado?.tallas?.isNotEmpty ?? false)
+                _buildTallaSelector(),
+            
+            // Selector de cantidad
+            _buildCantidadSelector(),
+      
+            if(_tieneSeleccionCompleta(usaTallas))
+              _buildStockVerification(usaTallas),
+      
+            const Spacer(),
+              
+            // Botón para agregar
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:colors.primary,
+                foregroundColor: colors.onPrimary,
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10)
+              ),
+              onPressed: _puedeAgregar(usaTallas) ? () => _agregarProducto(ref) : null,
+              child: const Text('Agregar a cotización'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -236,27 +238,64 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
         decoration: InputDecoration(
           labelText: 'Color',
           border: OutlineInputBorder(),
+          isDense: true,
         ),
         value: colorSeleccionado,
+        selectedItemBuilder: (BuildContext context) {
+          return colores.map((color) {
+            return DropdownMenuItem(
+              value: color,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 20,
+                        height: 20,
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          color: Color(int.parse(color.codigoHex.replaceFirst('#', '0xff'))),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      Text(
+                        color.color,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,  
+                      ),
+                    ],
+                  )
+                ],
+              )
+            );
+          }).toList();
+        },
         items: colores.map((color) {
           return DropdownMenuItem(
             value: color,
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  width: 20,
-                  height: 20,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: Color(int.parse(color.codigoHex.replaceFirst('#', '0xff'))),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    color.color,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      width: 20,
+                      height: 20,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        color: Color(int.parse(color.codigoHex.replaceFirst('#', '0xff'))),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    Text(
+                      color.color,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,  
+                    ),
+                  ],
                 ),
                 if(!usaTallas)
                   Text(
@@ -264,7 +303,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
               ],
-            ),
+            )
           );
         }).toList(),
         onChanged: (color) {
@@ -286,6 +325,23 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
           border: OutlineInputBorder(),
         ),
         value: tallaSeleccionada,
+        selectedItemBuilder: (BuildContext context) {
+          return colorSeleccionado!.tallas!.map((talla) {
+            return DropdownMenuItem(
+              value: talla,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    talla.talla ?? talla.codigo,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            );
+          }).toList();
+        },
         items: colorSeleccionado!.tallas!.map((talla) {
           return DropdownMenuItem(
             value: talla,
@@ -295,6 +351,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
                 Text(
                   talla.talla ?? talla.codigo,
                   style: Theme.of(context).textTheme.bodyLarge,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   'Stock: ${talla.stock}',
@@ -330,7 +387,7 @@ class DetallesProductoBottomSheetState extends ConsumerState<DetallesProductoBot
             child: Text(
               '$cantidad',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
           IconButton(

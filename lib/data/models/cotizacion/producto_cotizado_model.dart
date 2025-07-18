@@ -155,14 +155,14 @@ class VarianteCotizada {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'variante': variante,
+      'tipo': variante,
     };
   }
 
   factory VarianteCotizada.fromJson(Map<String, dynamic> json) {
     return VarianteCotizada(
       id: json['id'] ?? '',
-      variante: json['variante'],
+      variante: json['tipo'],
     );
   }
 }

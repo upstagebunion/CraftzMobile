@@ -8,9 +8,8 @@ class ModalAgregarProductos {
   final WidgetRef ref;
   final CatalogoCategorias categories;
   final ColorScheme colors;
-  final Function refresh;
 
-  ModalAgregarProductos(this.ref, this.categories, this.colors, this.refresh);
+  ModalAgregarProductos(this.ref, this.categories, this.colors);
 
   // Método para mostrar el formulario de agregar variante
   void mostrarFormularioVariante(BuildContext context, Producto producto, {bool isEditing = false, Variante? variante}) {
