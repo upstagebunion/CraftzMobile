@@ -465,7 +465,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
         final subcategoria = ref.read(proveedorCategorias.categoriesProvider.notifier).getSubcategoria(producto);
           
         if (categoria == null || subcategoria == null) {
-          return ListTile(title: Text('Error: Categoría no encontrada para ${producto.nombre}'));
+          return _buildCategoryErrorList(currentContext, producto, colors);
         }
           
         return _buildProductCard(
@@ -477,6 +477,45 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
           subcategoria
         );
       },
+    );
+  }
+
+  Widget _buildCategoryErrorList(BuildContext currentContext, Producto producto, ColorScheme colors){
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(), 
+        children: [
+          SlidableAction(
+            onPressed: (context) async {
+              final bool? hasSucceed = await Navigator.push(
+                currentContext,
+                MaterialPageRoute(
+                  builder: (context) => FormProductoScreen(
+                    isEditing: true,
+                    producto: producto
+                  ),
+                ),
+              );
+              if (hasSucceed != null && hasSucceed) {
+                if(!currentContext.mounted) return;
+                ScaffoldMessenger.of(currentContext).showSnackBar(
+                  SnackBar(content: Text('Producto actualizado exitosamente')),
+                );
+              }
+            },
+            backgroundColor: colors.primary,
+            icon: Icons.edit,
+            label: 'Editar',
+          ),
+        ]
+      ),
+      child: Card(
+        margin: EdgeInsets.all(8),
+        child: ListTile(
+          title: Text(producto.nombre),
+          subtitle: Text('Error: Categoría o subcategoría no encontrada, por favor, edite el producto y verifique.'),
+        ),
+      ),
     );
   }
 
@@ -512,13 +551,26 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
   }
 
   Widget _buildCategoryContent({
-    required Categoria categoria,
+    required Categoria? categoria,
     required CatalogoProductos catalogo,
     required ProductsController productsController,
     required ColorScheme colors,
     required BuildContext currentContext,
+    required CatalogoCategorias categorias,
   }) {
-    final productosCategoria = catalogo.productos.where((p) => p.categoria == categoria.id).toList();
+    final List<Producto> productosCategoria;
+    if(categoria != null){
+      productosCategoria  = catalogo.productos.where((p) => p.categoria == categoria.id).toList();
+    } else {
+      final Set<String> idsCategoriasExistentes = categorias.categorias.map((c) => c.id).toSet();
+      productosCategoria = catalogo.productos.where((p) {
+        // Un producto "sin categoría" se define como:
+        // - su campo 'categoria' es nulo o vacío
+        // O
+        // - el ID de su categoria no está en la lista de IDs existentes.
+        return  p.categoria.isEmpty || !idsCategoriasExistentes.contains(p.categoria);
+      }).toList();
+    }
     
     return Column(
       children: [
@@ -527,8 +579,9 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
           height: 50,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: categoria.subcategorias.length,
+            itemCount: categoria != null ?categoria.subcategorias.length : null,
             itemBuilder: (ctx, index) {
+              if (categoria == null) return null;
               final subcategoria = categoria.subcategorias[index];
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -584,31 +637,52 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     final isSaving = ref.watch(isSavingProvider);
 
     return DefaultTabController(
-      length: categorias.categorias.length,
+      length: (categorias.categorias.length + 1),
       child: Scaffold(
         appBar: CustomAppBar(
           title: Text('Inventario de Productos'),
           bottom: TabBar(
             isScrollable: true,
-            tabs: categorias.categorias.map((categoria) => Tab(
-              child: Text(categoria.nombre,
-              style: TextStyle(fontSize: 16, color: Colors.white),
-              ))).toList(),
+            tabs: [
+              ...categorias.categorias.map((categoria) => Tab(
+                child: Text(
+                  categoria.nombre,
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                )
+              )),
+              Tab(
+                child: Text(
+                  'Sin categoría',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+            ],
           ),
         ),
         body: SafeArea(
           child: isLoading
               ? Center(child: CircularProgressIndicator())
               : TabBarView(
-                children: categorias.categorias.map((categoria) {
-                  return _buildCategoryContent(
-                    categoria: categoria,
+                children: [
+                  ...categorias.categorias.map((categoria) {
+                    return _buildCategoryContent(
+                      categoria: categoria,
+                      catalogo: catalogo,
+                      productsController: productsController,
+                      colors: colors,
+                      currentContext: currentContext,
+                      categorias: categorias,
+                    );
+                  }),
+                  _buildCategoryContent(
+                    categoria: null,
                     catalogo: catalogo,
                     productsController: productsController,
                     colors: colors,
                     currentContext: currentContext,
-                  );
-                }).toList(),
+                    categorias: categorias,
+                  ),
+                ]
               ),
         ),
         floatingActionButton: Stack(

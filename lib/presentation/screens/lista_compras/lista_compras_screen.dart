@@ -156,7 +156,7 @@ class _ListaComprasScreenState extends ConsumerState<ListaComprasScreen> {
 
   Widget _buildLowStockItemTile(LowStockItem item, bool usesSizes) {
     return ListTile(
-      title: Text('${item.variantName ?? 'Variante'} - ${item.colorName}'),
+      title: Text('${item.colorName}'),
       subtitle: usesSizes && item.sizeName != null
           ? Text('Talla: ${item.sizeName} | Stock: ${item.currentStock}')
           : Text('Stock: ${item.currentStock}'),
@@ -237,11 +237,13 @@ class _ListaComprasScreenState extends ConsumerState<ListaComprasScreen> {
         groupedItems[item.variantName ?? 'Sin variante definida'] = {};
       }
       
-      if (!groupedItems[item.variantName]!.containsKey(item.qualityName)) {
-        groupedItems[item.variantName]![item.qualityName ?? 'Sin calidad definida'] = [];
+      final String variantName = item.variantName ?? 'Sin variante definida';
+      if (!groupedItems[variantName]!.containsKey(item.qualityName)) {
+        groupedItems[variantName]![item.qualityName ?? 'Sin calidad definida'] = [];
       }
       
-      groupedItems[item.variantName]![item.qualityName]!.add(item);
+      final String qualityName = item.qualityName ?? 'Sin calidad definida';
+      groupedItems[variantName]![qualityName]!.add(item);
     }
 
     return groupedItems;

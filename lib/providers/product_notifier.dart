@@ -544,16 +544,20 @@ class ProductosNotifier extends StateNotifier<CatalogoProductos> {
   }
 
   Future<void> editarProducto(String productoId, Map<String, dynamic> nuevosDatos) async {
-    final productoIndex = state.productos.indexWhere((p) => p.id == productoId);
+    final int productoIndex = state.productos.indexWhere((p) => p.id == productoId);
     if (productoIndex == -1) return;
 
-    final producto = state.productos[productoIndex];
+    final Producto producto = state.productos[productoIndex];
     final updatedProducto = producto.copyWith(
       nombre: nuevosDatos['nombre'] ?? producto.nombre,
       descripcion: nuevosDatos['descripcion'] ?? producto.descripcion,
       categoria: nuevosDatos['categoria'] ?? producto.categoria,
       subcategoria: nuevosDatos['subcategoria'] ?? producto.subcategoria,
-      configVariantes: nuevosDatos['configVariantes'] ?? producto.configVariantes,
+      configVariantes: nuevosDatos['configVariantes'] != null
+      ? producto.configVariantes.copyWith(
+        usaCalidad: (nuevosDatos['configVariantes']['usaCalidad'] as bool?) ?? producto.configVariantes.usaCalidad,
+        usaVariante: (nuevosDatos['configVariantes']['usaVariante'] as bool?) ?? producto.configVariantes.usaVariante,
+      ) : producto.configVariantes,
       activo: nuevosDatos['activo'] ?? producto.activo,
       modificado: true,
       metadata: Metadata(

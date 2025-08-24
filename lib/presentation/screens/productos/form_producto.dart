@@ -1,5 +1,6 @@
 import 'package:craftz_app/data/repositories/categorias_repositorie.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/product_notifier.dart';
 import '../../../providers/categories_provider.dart';
@@ -46,12 +47,29 @@ class _FormProductoScreenState extends ConsumerState<FormProductoScreen> {
     );
 
     if (widget.isEditing && widget.producto != null) {
-      _selectedCategoriaId = widget.producto!.categoria;
-      _selectedSubcategoriaId = widget.producto!.subcategoria;
       _usaVariantes = widget.producto!.configVariantes.usaVariante;
       _usaCalidades = widget.producto!.configVariantes.usaCalidad;
       _activo = widget.producto!.activo;
     }
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if(widget.isEditing){
+        final Set<String> idsCategoriasExistentes = ref.read(categoriesProvider).categorias.map((c) => c.id).toSet();
+        if (idsCategoriasExistentes.contains(widget.producto!.categoria)) {
+          // La categoría existe, asignamos el ID
+          setState(() {
+            _selectedCategoriaId = widget.producto!.categoria;
+            if (widget.producto!.subcategoria.isNotEmpty) {
+              // Debes validar que la subcategoría exista en la categoría seleccionada
+              final categoriaActual = catalogoCategorias.categorias.firstWhere(
+                  (c) => c.id == widget.producto!.categoria);
+              if (categoriaActual.subcategorias.any((s) => s.id == widget.producto!.subcategoria)) {
+              _selectedSubcategoriaId = widget.producto!.subcategoria;
+              }
+            }
+          });
+        }
+      }
+    });
   }
 
   @override
