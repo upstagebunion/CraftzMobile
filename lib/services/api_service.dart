@@ -677,8 +677,10 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body)['cotizacion'];
     } else {
-      final String mensaje = jsonDecode(response.body)['message'] ?? 'Error desconocido';
-      throw 'Error al crear cotizacion: $mensaje';
+      final decodedResponse = jsonDecode(response.body);
+      final String mensaje = decodedResponse['message'] ?? 'Error';
+      final String error = decodedResponse['error'] ?? 'desconocido';
+      throw '$mensaje: $error';
     }
   }
 

@@ -75,7 +75,7 @@ class CotizacionesNotifier extends StateNotifier<CatalogoCotizaciones> {
         ).toList()
       );
     } catch (e) {
-      throw Exception('Error al actualizar cotización: $e');
+      throw '$e';
     }
   }
 

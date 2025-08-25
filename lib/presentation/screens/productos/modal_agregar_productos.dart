@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/repositories/catalogo_productos_repositorie.dart';
 import '../../../providers/product_notifier.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'dart:ui' as ui;
 
 class ModalAgregarProductos {
   final WidgetRef ref;
@@ -178,12 +180,39 @@ class ModalAgregarProductos {
     );
   }
 
+  // ---- Helpers HEX <-> ui.Color ----
+  ui.Color _parseHex(String input) {
+    var hex = input.trim();
+    if (!hex.startsWith('#')) hex = '#$hex';
+    // si viene en #RGB -> #RRGGBB (opcional)
+    if (hex.length == 4) {
+      hex = '#'
+          '${hex[1]}${hex[1]}'
+          '${hex[2]}${hex[2]}'
+          '${hex[3]}${hex[3]}';
+    }
+    // fuerza alpha FF
+    if (hex.length == 7) {
+      hex = hex.replaceFirst('#', '#FF');
+    }
+    try {
+      return ui.Color(int.parse(hex.substring(1), radix: 16));
+    } catch (_) {
+      return const ui.Color(0xFFFFFFFF);
+    }
+  }
+
+  String _toHex6(ui.Color c) {
+    final rgb = (c.value & 0x00FFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase();
+    return '#$rgb';
+  }
+
   // Método para mostrar el formulario de agregar color
   void mostrarFormularioColor(BuildContext context, Producto producto, Variante variante, Calidad calidad, Subcategoria subcategoria, {bool isEditing = false, Color? color}) {
     final TextEditingController nombreColorController = TextEditingController(
         text: isEditing ? color?.color : '');
     final TextEditingController hexController = TextEditingController(
-        text: isEditing ? color?.codigoHex : '#FFFFFF');
+        text: isEditing ? (color?.codigoHex ?? '#FFFFFF') : '#FFFFFF');
     final TextEditingController stockController = TextEditingController(
         text: isEditing && color?.stock != null ? color!.stock.toString() : '0');
     final TextEditingController costoController = TextEditingController(
@@ -193,12 +222,76 @@ class ModalAgregarProductos {
     final bool usaTallas = subcategoria.usaTallas;
     bool disponibleOnline = isEditing ? color?.disponibleOnline ?? true : true;
 
+    // color actual del picker (ui.Color), inicializado desde el campo HEX
+    ui.Color pickedColor = _parseHex(hexController.text);
+
+    // Mantener sincronía cuando el usuario teclea manualmente el HEX
+    hexController.addListener(() {
+      final parsed = _parseHex(hexController.text);
+      pickedColor = parsed;
+    });
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            Widget _colorDot(ui.Color c) => Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Theme.of(context).dividerColor),
+                color: c,
+              ),
+            );
+
+            Future<void> _openColorPicker() async {
+              ui.Color temp = pickedColor;
+              await showDialog(
+                context: context,
+                builder: (ctx) {
+                  return AlertDialog(
+                    title: const Text('Selecciona un color'),
+                    content: SingleChildScrollView(
+                      child: ColorPicker(
+                        pickerColor: temp,
+                        onColorChanged: (ui.Color c) {
+                          // actualiza color temporal dentro del diálogo
+                          temp = c;
+                        },
+                        // Opcionales: enableAlpha: false, displayThumbColor: true, etc.
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // confirma selección -> sincroniza todo
+                          setModalState(() {
+                            pickedColor = temp;
+                            hexController.text = _toHex6(pickedColor);
+                          });
+                          Navigator.of(ctx).pop();
+                        },
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+
+            // Valida HEX simple antes de guardar
+            bool _hexValido(String h) {
+              final reg = RegExp(r'^#?[0-9A-Fa-f]{6}$');
+              return reg.hasMatch(h.trim());
+            }
+
             return SafeArea(
               child: Padding(
                 padding: EdgeInsets.only(
@@ -214,13 +307,39 @@ class ModalAgregarProductos {
                         decoration: InputDecoration(labelText: 'Nombre del Color'),
                       ),
                     ),
+
+                    // ---- Fila: HEX + preview + botón picker ----
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        controller: hexController,
-                        decoration: InputDecoration(labelText: 'Código HEX'),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: hexController,
+                              decoration: const InputDecoration(labelText: 'Código HEX (#RRGGBB)'),
+                              inputFormatters: [
+                                // opcional: limitar caracteres válidos
+                                // FilteringTextInputFormatter.allow(RegExp(r'#[0-9A-Fa-f]{0,6}|[0-9A-Fa-f]{0,6}')),
+                              ],
+                              onChanged: (v) {
+                                setModalState(() {
+                                  pickedColor = _parseHex(v);
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          _colorDot(pickedColor),
+                          const SizedBox(width: 8),
+                          TextButton.icon(
+                            onPressed: _openColorPicker,
+                            icon: const Icon(Icons.palette),
+                            label: const Text('Elegir'),
+                          ),
+                        ],
                       ),
                     ),
+
                     if (!usaTallas)...[
                       Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -252,10 +371,12 @@ class ModalAgregarProductos {
                       value: disponibleOnline,
                       onChanged: (value) => setModalState(() => disponibleOnline = value),
                     ),
+
+                    const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () async {
                         final nombre = nombreColorController.text.trim();
-                        final hex = hexController.text.trim();
+                        String hex = hexController.text.trim();
                         final orden = int.tryParse(ordenController.text) ?? 0;
             
                         if (nombre.isEmpty) {
@@ -264,6 +385,17 @@ class ModalAgregarProductos {
                           );
                           return;
                         }
+
+                        if (!_hexValido(hex)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Código HEX inválido. Usa #RRGGBB.')),
+                          );
+                          return;
+                        }
+
+                        // normaliza a #RRGGBB
+                        if (!hex.startsWith('#')) hex = '#$hex';
+                        hex = hex.toUpperCase();
             
                         try {
                           isEditing 

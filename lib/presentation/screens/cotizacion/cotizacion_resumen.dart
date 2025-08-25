@@ -192,7 +192,7 @@ class ResumenCotizacion extends ConsumerWidget {
     } catch (e) {
       if (contextPrincipal.mounted) {
         ScaffoldMessenger.of(contextPrincipal).showSnackBar(
-          SnackBar(content: Text('Error al guardar: $e')),
+          SnackBar(content: Text('$e')),
         );
       }
     }

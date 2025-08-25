@@ -192,14 +192,14 @@ class CalidadCotizada {
 }
 
 class ColorCotizado {
-  final String id;
-  final String color;
-  final String codigoHex;
+  final String? id;
+  final String? color;
+  final String? codigoHex;
 
   ColorCotizado({
-    required this.id,
-    required this.color,
-    required this.codigoHex
+    this.id,
+    this.color,
+    this.codigoHex
   });
 
   Map<String, dynamic> toJson() {
@@ -241,8 +241,8 @@ class TallaCotizada {
   factory TallaCotizada.fromJson(Map<String, dynamic> json) {
     return TallaCotizada(
       id: json['id'] ?? '',
-      talla: json['nombre'],
-      codigo: json['codigo'],
+      talla: json['nombre'] ?? '',
+      codigo: json['codigo'] ?? '',
     );
   }
 }
