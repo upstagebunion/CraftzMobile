@@ -383,13 +383,19 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
         children: [
           if (producto.configVariantes.usaVariante)
             // Si usa variantes, mapea cada variante a _buildVarianteItem
-            ...producto.variantes!.map((variante) => _buildVarianteItem(
+            ...[
+                ...producto.variantes!.map((variante) => _buildVarianteItem(
                   context: context,
                   productsController: productsController,
                   producto: producto,
                   variante: variante,
                   subcategoria: subcategoria,
-                ))
+                )),
+                TextButton(
+                  onPressed: () => modalAgregarProductos.mostrarFormularioVariante(context, producto),
+                  child: Text('Agregar Variante'),
+                )
+              ]
           else if (producto.variantes != null && producto.variantes!.isNotEmpty)
             // Si NO usa variantes, pero tiene al menos una variante (la "única" variante)
             // y esta variante tiene calidades
