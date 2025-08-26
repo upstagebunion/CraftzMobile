@@ -89,24 +89,33 @@ API_URL=https://craftz-api.onrender.com
 ## 🎨 Preview
 - Login
 <p align="center">
-  <img src="screenshots/login.gif" width="600"/></br>
+  <img src="screenshots/login.gif" width="300"/></br>
 </p>
 - Inventory Report
 <p align="center">
-  <img src="screenshots/inventory-report.gif" width="600"/></br>
+  <img src="screenshots/inventory-report.gif" width="300"/></br>
 </p>
-- Add a product
+
+<details>
+<summary> Add a product </summary>
 <p align="center">
-  <img src="screenshots/add-product-cotizacion.gif" width="600"/></br>
+  <img src="screenshots/add-product-cotizacion.gif" width="300"/></br>
 </p>
-- Manipulating Products
+</details>
+
+<details>
+<summary> Manipulating Products </summary>
 <p align="center">
-  <img src="screenshots/manipulating-products-cotizacion.gif" width="600"/></br>
+  <img src="screenshots/manipulating-products-cotizacions.gif" width="300"/></br>
 </p>
-- Ticket Generation
+</details>
+
+<details>
+<summary> Ticket Generation </summary>
 <p align="center">
-  <img src="screenshots/ticket-generation.gif" width="600"/></br>
+  <img src="screenshots/ticket-generation.gif" width="300"/></br>
 </p>
+</details>
 
 ## 🔜 Next Features
 - Add/Edit/Delete products from the app
