@@ -106,10 +106,10 @@ class _VentasScreenState extends ConsumerState<VentasScreen> with SingleTickerPr
         filteredVentas = ventasState.ventas;
         break;
       case 1: // Pendientes de liquidar
-        filteredVentas = ventasState.ventas.where((v) => !v.liquidado).toList();
+        filteredVentas = ventasState.ventas.where((v) => !v.liquidado && v.estado != EstadoVenta.devuelto).toList();
         break;
       case 2: // No entregadas
-        filteredVentas = ventasState.ventas.where((v) => v.estado != EstadoVenta.entregado).toList();
+        filteredVentas = ventasState.ventas.where((v) => v.estado != EstadoVenta.entregado && v.estado != EstadoVenta.devuelto).toList();
         break;
       case 3: // Finalizadas (liquidadas y entregadas)
         filteredVentas = ventasState.ventas.where((v) => v.liquidado && v.estado == EstadoVenta.entregado).toList();
