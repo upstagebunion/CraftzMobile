@@ -86,12 +86,27 @@ Make sure to add a .env file with your API config:
 API_URL=https://craftz-api.onrender.com
 ```
 
-## 🎨 Theme Preview
-- Splash	
+## 🎨 Preview
 - Login
-- Inventory
-
-> Splash	Login	Inventory
+<p align="center">
+  <img src="screenshots/login.gif" width="600"/></br>
+</p>
+- Inventory Report
+<p align="center">
+  <img src="screenshots/inventory-report.gif" width="600"/></br>
+</p>
+- Add a product
+<p align="center">
+  <img src="screenshots/add-product-cotizacion.gif" width="600"/></br>
+</p>
+- Manipulating Products
+<p align="center">
+  <img src="screenshots/manipulating-products-cotizacion.gif" width="600"/></br>
+</p>
+- Ticket Generation
+<p align="center">
+  <img src="screenshots/ticket-generation.gif" width="600"/></br>
+</p>
 
 ## 🔜 Next Features
 - Add/Edit/Delete products from the app
@@ -102,11 +117,21 @@ API_URL=https://craftz-api.onrender.com
 🛠️ Powered By
 ```
 flutter: ^3.6.0
-flutter_riverpod: ^2.6.1
 http: ^1.0.0
+flutter_riverpod: ^2.6.1
+riverpod_annotation: ^2.6.1
+flutter_native_splash: ^2.4.4
 shared_preferences: ^2.4.0
 flutter_dotenv: ^5.0.2
 flutter_slidable: ^4.0.0
+intl: ^0.18.1
+package_info_plus: ^8.3.0
+file_saver: ^0.2.14
+open_filex: ^4.7.0
+html_to_pdf: ^0.8.1
+path_provider: ^2.1.5
+permission_handler: ^12.0.0+1
+flutter_colorpicker: ^1.1.0
 ```
 
 ## 👨‍💻 Author
