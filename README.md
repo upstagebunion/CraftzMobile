@@ -39,6 +39,39 @@ The mobile app seamlessly integrates with the **[Craftz Backend API](../Aplicaci
 
 ---
 
+## 🎨 Preview
+- Login
+<p align="center">
+  <img src="screenshots/login.gif" width="300"/></br>
+</p>
+- Inventory Report
+<p align="center">
+  <img src="screenshots/inventory-report.gif" width="300"/></br>
+</p>
+
+<details>
+<summary> Add a product </summary>
+<p align="center">
+  <img src="screenshots/add-product-cotizacion.gif" width="300"/></br>
+</p>
+</details>
+
+<details>
+<summary> Manipulating Products </summary>
+<p align="center">
+  <img src="screenshots/manipulating-products-cotizacions.gif" width="300"/></br>
+</p>
+</details>
+
+<details>
+<summary> Ticket Generation </summary>
+<p align="center">
+  <img src="screenshots/ticket-generation.gif" width="300"/></br>
+</p>
+</details>
+
+---
+
 ## 🛠️ Technology Stack
 
 ### Mobile Framework
